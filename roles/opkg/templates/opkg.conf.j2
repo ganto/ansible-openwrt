@@ -1,0 +1,10 @@
+{% for _name, _path in opkg_cfg_option_dest.items() %}
+dest {{ _name }} {{ _path }}
+{% endfor %}
+lists_dir ext {{ opkg_cfg_option_listsdir }}
+{% for _arch, _priority in opkg_cfg_option_arch.items() %}
+arch {{ _arch }} {{ _priority }}
+{% endfor %}
+{% for _option, _value in opkg_cfg_options.items() %}
+option {{ _option }} {{ _value }}
+{% endfor %}

@@ -1,0 +1,37 @@
+---
+
+- name: Repository metadata directory
+  file:
+    path: '{{ opkg_cfg_option_listsdir }}'
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Define opkg.conf
+  template:
+    src: opkg.conf.j2
+    dest: /etc/opkg.conf
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Distribution repository feeds
+  template:
+    src: feeds.conf.j2
+    dest: /etc/opkg/distfeeds.conf
+    owner: root
+    group: root
+    mode: '0644'
+  vars:
+    opkg_tmpl_feeds: '{{ opkg_dist_feeds }}'
+
+- name: Custom repository feeds
+  template:
+    src: feeds.conf.j2
+    dest: /etc/opkg/customfeeds.conf
+    owner: root
+    group: root
+    mode: '0644'
+  vars:
+    opkg_tmpl_feeds: '{{ opkg_custom_feeds }}'

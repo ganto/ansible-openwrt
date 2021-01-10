@@ -1,0 +1,128 @@
+---
+#
+# opkg - Package Manager Configuration
+#
+# For more information see `man(5) opkg.conf`.
+
+# Dictionary of destination options defined in `/etc/opkg.conf`. Each item must
+# correspond to the format: `<name>: <path>`.
+opkg_cfg_option_dest:
+  root: '/'
+  ram: '/tmp'
+
+# Dictionary of arch options defined in `/etc/opkg.conf`. Each item defines an
+# architecture with a priority in the format `<arch>: <priority>`.
+opkg_cfg_option_arch: {}
+
+# Directory path used to store local copies of the repository information.
+opkg_cfg_option_listsdir: '/var/opkg-lists'
+
+# Dictionary of configuration options to be defined in `/etc/opkg.conf`. Each
+# item must correspond to the format: `<option>: <value>`
+opkg_cfg_options: '{{ opkg_default_cfg_options
+                      | combine(opkg_custom_cfg_options) }}'
+
+# Dictionary of default configuration options to be defined `/etc/opkg.conf`.
+opkg_default_cfg_options:
+  overlay_root: '/overlay'
+
+  # Performs a signature check against the package index.
+  check_signature: 1
+
+  # Removes packages that where installed automatically in order to satisfy
+  # dependencies.
+  autoremove: 1
+
+# Dictionary of custom configuration options to be defined in `/etc/opkg.conf`.
+opkg_custom_cfg_options: {}
+
+# Configuration dictionary of distribution repository feeds to be defined in
+# `/etc/opkg/distfeeds.conf`. The following dictinary keys must be defined:
+#
+#   base_url        Base URL prefix used to construct the feed URL
+#   default_type    Default repository type used if not explicitly specified
+#                   for the feed
+#   feed            List of individual repository feeds
+#
+# Each repository feed item is another dictionary that can specify the
+# following dictionary keys:
+#
+#   name    (required)    Name of the repository
+#   path    (required)    URL path that will be added to the `base_url`
+#   type    (optional)    Repository type (`src` or `src/gz`). Defaults to the
+#                         `default_type`.
+#
+opkg_dist_feeds: '{{ opkg_default_dist_feeds[ansible_distribution | lower]
+                     | combine(opkg_dist_feed_override) }}'
+
+# Configuration dictionary that can be used to overwrite configuration keys
+# defined in `opkg_default_dist_feeds`. If you define the `opkg_dist_feeds`
+# variable yourself this can be ignored.
+#
+# However when using the default repositories this can be used to e.g.
+# customize the release or set a local mirror URL. E.g.:
+#
+#   opkg_dist_feed_override:
+#     base_url: http://downloads.openwrt.org/snapshots/
+#
+# For TurrisOS-based routers it can be used as alternative to `switch-branch`
+# by setting the `base_url` to e.g. the HBT (Here Be Turtles) repository:
+#
+#   opkg_dist_feed_override:
+#     base_url: https://repo.turris.cz/hbt/omnia/packages/
+#
+opkg_dist_feed_override: {}
+
+# Dictionary of default repository definitions of varous OpenWRT distributions.
+opkg_default_dist_feeds:
+  # OpenWRT (https://openwrt.org/)
+  openwrt:
+    base_url: 'http://downloads.openwrt.org/releases/{{ ansible_distribution_version }}/'
+    default_type: src/gz
+    feeds:
+      - name: openwrt_core
+        path: 'targets/{{ ansible_architecture | regex_replace("_", "/") }}/packages'
+      - name: openwrt_base
+        path: 'packages/{{ ansible_architecture }}/base'
+      - name: openwrt_freifunk
+        path: 'packages/{{ ansible_architecture }}/freifunk'
+      - name: openwrt_luci
+        path: 'packages/{{ ansible_architecture }}/luci'
+      - name: openwrt_packages
+        path: 'packages/{{ ansible_architecture }}/packages'
+      - name: openwrt_routing
+        path: 'packages/{{ ansible_architecture }}/routing'
+      - name: openwrt_telephony
+        path: 'packages/{{ ansible_architecture }}/telephony'
+
+  # TurrisOS (https://docs.turris.cz/)
+  turrisos:
+    base_url: 'https://repo.turris.cz/hbs/omnia/packages/'
+    default_type: src/gz
+    feeds:
+      - name: turrisos_core
+        path: core
+      - name: turrisos_base
+        path: base
+      - name: turrisos_cesnet
+        path: cesnet
+      - name: turrisos_luci
+        path: luci
+      - name: turrisos_node
+        path: node
+      - name: turrisos_openwisp
+        path: openwisp
+      - name: turrisos_packages
+        path: packages
+      - name: turrisos_routing
+        path: routing
+      - name: turrisos_sidn
+        path: sidn
+      - name: turrisos_telephony
+        path: telephony
+      - name: turrisos_turrispackages
+        path: turrispackages
+
+# Configuration dictionary of custom repository feeds to be defined in
+# `/etc/opkg/customfeeds.conf`. The format corresponds to `opkg_dist_feeds`.
+opkg_custom_feeds: {}

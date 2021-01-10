@@ -1,0 +1,3 @@
+{% for _feed in opkg_tmpl_feeds.feeds|d({}) %}
+{{ _feed.type|d(opkg_tmpl_feeds.default_type) }} {{ _feed.name }} {{ opkg_tmpl_feeds.base_url }}{{ _feed.path }}
+{% endfor %}

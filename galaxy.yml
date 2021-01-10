@@ -1,0 +1,21 @@
+namespace: ganto
+name: openwrt
+version: 1.0.0
+description: Resources to manage an OpenWRT-based router
+authors:
+- Reto Gantenbein <reto.gantenbein@linuxmonk.ch>
+license:
+- GPL-3.0-or-later
+
+readme: README.md
+repository: https://github.com/ganto/ansible-openwrt
+issues: https://github.com/ganto/ansible-openwrt/issues
+#documentation: http://docs.example.com
+#homepage: http://example.com
+
+tags:
+  - openwrt
+
+dependencies: {}
+
+build_ignore: []
