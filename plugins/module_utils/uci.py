@@ -52,17 +52,30 @@ class UnifiedConfigurationInterface():
 
         return dict(output=out, rc=rc)
 
+    def changes(self, args=[]):
+        args.insert(0, 'changes')
 
+        result = self._exec(args)
+        return dict(output=uci_parse_output(result['output']), rc=result['rc'])
 
+    def commit(self, args=[]):
+        args.insert(0, 'commit')
+        return dict(rc=self._exec(args)['rc'])
 
+    def get(self, args=[]):
+        args.insert(0, 'get')
+
+        result = self._exec(args)
+        return dict(output=uci_parse_value(result['output']), rc=result['rc'])
+
+    def set(self, args=None):
+        args.insert(0, 'set')
+        return dict(rc=self._exec(args)['rc'])
 
     def show(self, args=[]):
         args.insert(0, 'show')
 
         result = self._exec(args)
-        if 'error' in result.keys():
-            return result
-
         return dict(output=uci_parse_output(result['output']), rc=result['rc'])
 
     def version(self):
