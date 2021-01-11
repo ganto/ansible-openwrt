@@ -6,8 +6,35 @@ __metaclass__ = type
 
 from re import match
 
-
 STRIP_QUOTES = r'\'\"\\'
+
+
+def uci_parse_value(value):
+    val = value.strip(STRIP_QUOTES)
+    if len(val) == 0:
+        return ''
+
+    val = val.splitlines()[0]
+
+    if val.isdigit():
+        val = int(val)
+    elif ' ' in val:
+        val = val.split()
+
+    return val
+
+
+def uci_parse_output(msg):
+    if len(msg) == 0:
+        return {}
+
+    lines = msg.splitlines()
+    items = dict(item.split('=', maxsplit=1) for item in lines)
+
+    for key, val in items.items():
+        items[key] = uci_parse_value(val)
+
+    return items
 
 
 class UnifiedConfigurationInterface():
@@ -21,28 +48,22 @@ class UnifiedConfigurationInterface():
 
         rc, out, err = self.module.run_command(args)
         if rc != 0:
-            return dict(error=err)
+            return dict(error=err, rc=rc)
 
-        return self._parse_output(out)
+        return dict(output=out, rc=rc)
 
-    def _parse_output(self, msg):
-        lines = msg.splitlines()
-        items = dict(item.split('=', maxsplit=1) for item in lines)
 
-        for key, val in items.items():
-            val = val.strip(STRIP_QUOTES)
-            if val.isdigit():
-                val = int(val)
-            elif ' ' in val:
-                val = val.split()
-            items[key] = val
 
-        return items
+
 
     def show(self, args=[]):
         args.insert(0, 'show')
 
-        return self._exec(args)
+        result = self._exec(args)
+        if 'error' in result.keys():
+            return result
+
+        return dict(output=uci_parse_output(result['output']), rc=result['rc'])
 
     def version(self):
         opkg = self.module.get_bin_path('opkg')

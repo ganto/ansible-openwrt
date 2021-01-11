@@ -112,7 +112,7 @@ def main():
     if 'error' in uci_facts.keys():
         module.fail_json(msg=uci_facts.error)
 
-    results['ansible_facts'].update(dict(uci=uci_facts))
+    results['ansible_facts'].update(dict(uci=uci_facts['output']))
 
     version = uci.version()
     if version:
