@@ -60,7 +60,7 @@ from ansible_collections.ganto.openwrt.plugins.module_utils.uci import UnifiedCo
 def main():
     module = AnsibleModule(
         argument_spec=dict(
-            command=dict(type='str', choices=['get', 'set']),
+            command=dict(type='str', choices=['changes', 'get', 'set']),
             commit=dict(type='bool', default=False),
             config=dict(type='str'),
             key=dict(type='str'),
@@ -116,43 +116,48 @@ def main():
 
         result.update(changes=changes)
 
-    # Get or set a value
-    if module.params['command'] in ['get', 'set']:
+    if module.params['command']:
 
-        current_value = uci.get(
-            ['.'.join(n for n in input.values() if n is not None)])['output']
-        input_value = module.params['value']
+        # Get or set a value
+        if module.params['command'] in ['get', 'set']:
 
-        if (module.params['command'] == 'set' and
-                input_value != current_value):
+            current_value = uci.get(
+                ['.'.join(n for n in input.values() if n is not None)])['output']
+            input_value = module.params['value']
 
-            diff['before'].update(value=current_value)
-            diff['after'].update(value=input_value)
-            result['changed'] = True
+            if (module.params['command'] == 'set' and
+                    input_value != current_value):
 
-            if not module.check_mode:
-                uci.set(['.'.join(n for n in input.values()
-                                  if n is not None) + ('=%s' % input_value)])
+                diff['before'].update(value=current_value)
+                diff['after'].update(value=input_value)
+                result['changed'] = True
 
-            result['result'].update(value=input_value)
-        else:
-            result['result'].update(value=current_value)
+                if not module.check_mode:
+                    uci.set(['.'.join(n for n in input.values()
+                                      if n is not None) + ('=%s' % input_value)])
 
-    if input['config']:
-        result['result'].update(config=input['config'])
+                result['result'].update(value=input_value)
+            else:
+                result['result'].update(value=current_value)
 
-    result['result'].update(named=module.params['named'])
-    if not module.params['named']:
-        result['result'].update(section=input['section'])
-    else:
-        named = uci.show(['.'.join(list(input.values())[0:2])])
-        result['result'].update(section=list(named['output'])[0].split('.')[1])
+        if module.params['command'] in ['get', 'set']:
 
-    if input['option']:
-        result['result'].update(option=input['option'])
+            if input['config']:
+                result['result'].update(config=input['config'])
+
+            result['result'].update(named=module.params['named'])
+            if not module.params['named']:
+                result['result'].update(section=input['section'])
+            else:
+                named = uci.show(['.'.join(list(input.values())[0:2])])
+                result['result'].update(
+                    section=list(named['output'])[0].split('.')[1])
+
+            if input['option']:
+                result['result'].update(option=input['option'])
 
     # Commit pending changes
-    if (result['changed'] or len(changes) > 0) and module.params['commit']:
+    if module.params['commit'] and ('changed' in result.keys() or len(changes) > 0):
         if not module.check_mode:
             args = []
             if input['config']:
