@@ -17,7 +17,7 @@ options:
   command:
     description:
       - UCI command to run
-    choices: ['get', 'set']
+    choices: ['add', 'changes', 'delete', 'get', 'revert', 'set']
   commit:
     description:
       - Persist changes to configuration file.
@@ -60,7 +60,8 @@ from ansible_collections.ganto.openwrt.plugins.module_utils.uci import UnifiedCo
 def main():
     module = AnsibleModule(
         argument_spec=dict(
-            command=dict(type='str', choices=['changes', 'get', 'set']),
+            command=dict(type='str',
+                         choices=['add', 'changes', 'delete', 'get', 'revert', 'set']),
             commit=dict(type='bool', default=False),
             config=dict(type='str'),
             key=dict(type='str'),
@@ -89,6 +90,10 @@ def main():
         if len(elements) > 2:
             input['option'] = elements[2]
 
+    if input['section'] and not ['config']:
+        module.fail_json(
+            msg="Option 'section' requires 'config' to be defined too.")
+
     result = dict(
         changed=False,
         result={}
@@ -98,13 +103,14 @@ def main():
         after={}
     )
 
+    command = module.params['command']
     uci = UnifiedConfigurationInterface(module)
 
     # Check if uci is in an uncommitted state
     args = []
     if input['config']:
         args.append(input['config'])
-    changes = uci.changes(args)['output']
+    changes = uci.changes(args)
 
     if len(changes) > 0:
         if module.params['commit']:
@@ -114,19 +120,63 @@ def main():
         else:
             result['result'].update(committed=False)
 
-        result.update(changes=changes)
+    if not command:
+        # If no command is defined then we should only commit.
+        # Always add potential changes to result.
+        result['result'].update(changes=changes)
 
-    if module.params['command']:
+    else:
+        # Check required options
+        if command in ['delete', 'revert']:
+            if not input['config']:
+                module.fail_json(
+                    msg="Command '%s' requires 'config' or 'key' to be defined." % command)
+
+        if command in ['add', 'get', 'set']:
+            for element in ['config', 'section']:
+                if not input[element]:
+                    module.fail_json(
+                        msg="Command '%s' requires '%s' or 'key' to be defined." % (command, element))
+
+        if command in ['set']:
+            if not module.params['value']:
+                module.fail_json(
+                    msg="Command '%s' requires 'value' to be defined." % command)
+
+        # Add new section
+        if command == 'add':
+            if not module.check_mode:
+                section = uci.add([input['config'], input['section']])
+
+                result['result'].update(section=section)
+
+            result['changed'] = True
+            # A new section will be generated with the given section (type) as value
+            result['result'].update(value=input['section'])
+
+        # Query pending changes
+        if command in ['changes', 'revert']:
+            result['result'].update(changes=changes)
+            if len(changes) == 0:
+                result['result'].update(committed=True)
+
+        # Revert uncommitted changes
+        if command == 'revert':
+            if len(changes) > 0:
+                result['changed'] = True
+
+                if not module.check_mode:
+                    uci.revert(['.'.join(n for n in input.values()
+                                         if n is not None)])
 
         # Get or set a value
-        if module.params['command'] in ['get', 'set']:
+        if command in ['get', 'set']:
 
             current_value = uci.get(
-                ['.'.join(n for n in input.values() if n is not None)])['output']
+                ['.'.join(n for n in input.values() if n is not None)])
             input_value = module.params['value']
 
-            if (module.params['command'] == 'set' and
-                    input_value != current_value):
+            if (command == 'set' and input_value != current_value):
 
                 diff['before'].update(value=current_value)
                 diff['after'].update(value=input_value)
@@ -140,25 +190,56 @@ def main():
             else:
                 result['result'].update(value=current_value)
 
-        if module.params['command'] in ['get', 'set']:
+        if command == 'delete':
+            key = '.'.join(n for n in input.values() if n is not None)
+            try:
+                value = uci.get([key])
+                section = uci.section_name(key, trimconfig=True)
 
+                diff['before'].update(config=input['config'],
+                                      section=section,
+                                      value=value)
+                if input['option']:
+                    diff['before'].update(option=input['option'])
+
+                if not module.check_mode:
+                    uci.delete([key])
+                else:
+                    # If we're in check-mode the committed state cannot be
+                    # determined by analyzing the changes as it's done below
+                    if (('commited' not in result['result'].keys() or
+                            not result['result']['committed']) and
+                            not module.params['commit']):
+                        diff['before'].update(committed=True)
+                        diff['after'].update(committed=False)
+                        result['result'].update(committed=False)
+
+                result['changed'] = True
+
+            except OSError as e:
+                if e.strerror != 'Entry not found':
+                    raise(e)
+
+        if command in ['add', 'get', 'set']:
             if input['config']:
                 result['result'].update(config=input['config'])
+
+        if command in ['get', 'set']:
 
             result['result'].update(named=module.params['named'])
             if not module.params['named']:
                 result['result'].update(section=input['section'])
             else:
-                named = uci.show(['.'.join(list(input.values())[0:2])])
-                result['result'].update(
-                    section=list(named['output'])[0].split('.')[1])
+                section = uci.section_name("%s.%s" % (input['config'], input['section']),
+                                           trimconfig=True)
+                result['result'].update(section=section)
 
             if input['option']:
                 result['result'].update(option=input['option'])
 
     # Commit pending changes
-    if module.params['commit'] and ('changed' in result.keys() or len(changes) > 0):
-        if not module.check_mode:
+    if module.params['commit']:
+        if ('changed' in result.keys() or len(changes) > 0) and not module.check_mode:
             args = []
             if input['config']:
                 args.append(input['config'])
@@ -166,7 +247,17 @@ def main():
             uci.commit(args)
 
         result['result'].update(committed=True)
+    else:
+        # Eventually check if uci is in an uncommitted state again
+        args = []
+        if input['config']:
+            args.append(input['config'])
+        changes = uci.changes(args)
 
+        if len(changes) > 0:
+            result['result'].update(committed=False)
+
+    # Check if there are some diffs to attach
     if len(diff['before'].keys()) > 0:
         result.update(diff=diff)
 

@@ -56,6 +56,10 @@ class UnifiedConfigurationInterface():
 
         return stdout
 
+    def add(self, args):
+        args.insert(0, 'add')
+        return uci_parse_values(self._exec(args))
+
     def changes(self, args=[]):
         args.insert(0, 'changes')
 
@@ -76,6 +80,10 @@ class UnifiedConfigurationInterface():
     def get(self, args=[]):
         args.insert(0, 'get')
         return uci_parse_value(self._exec(args))
+
+    def revert(self, args):
+        args.insert(0, 'revert')
+        self._exec(args)
 
     def set(self, args):
         args.insert(0, 'set')
