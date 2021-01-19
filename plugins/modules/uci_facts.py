@@ -93,30 +93,27 @@ def main():
     elements = []
     if module.params['config']:
         elements.append(module.params['config'])
-        results['ansible_facts'].update(
-            dict(uci_config=module.params['config']))
+        results['ansible_facts'].update(uci_config=module.params['config'])
     if module.params['section']:
         if not module.params['config']:
             module.fail_json(msg='missing required argument: config')
         elements.append(module.params['section'])
-        results['ansible_facts'].update(
-            dict(uci_section=module.params['section']))
+        results['ansible_facts'].update(uci_section=module.params['section'])
 
     args = []
     if len(elements) > 0:
         args.append('.'.join(elements))
 
     uci = UnifiedConfigurationInterface(module)
-    uci_facts = uci.show(args)
+    try:
+        results['ansible_facts'].update(uci=uci.show(args))
 
-    if 'error' in uci_facts.keys():
-        module.fail_json(msg=uci_facts.error)
-
-    results['ansible_facts'].update(dict(uci=uci_facts['output']))
+    except OSError as e:
+        module.fail_json(msg="%s: %s" % (e.filename, e.strerror))
 
     version = uci.version()
     if version:
-        results['ansible_facts'].update(dict(uci_version=version))
+        results['ansible_facts'].update(uci_version=version)
 
     module.exit_json(**results)
 

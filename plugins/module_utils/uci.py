@@ -6,6 +6,9 @@ __metaclass__ = type
 
 from re import match
 
+from ansible.module_utils.common.process import get_bin_path
+
+
 STRIP_QUOTES = r'\'\"\\'
 
 
@@ -41,45 +44,58 @@ class UnifiedConfigurationInterface():
 
     def __init__(self, module):
         self.module = module
-        self.uci_path = module.get_bin_path('uci', required=True)
+        self.uci_path = get_bin_path('uci', required=True)
 
     def _exec(self, args):
         args.insert(0, self.uci_path)
 
-        rc, out, err = self.module.run_command(args)
+        rc, stdout, stderr = self.module.run_command(args)
         if rc != 0:
-            return dict(error=err, rc=rc)
+            path, _, strerror = stderr.strip().partition(' ')
+            raise OSError(rc, strerror, path.strip(':'))
 
-        return dict(output=out, rc=rc)
+        return stdout
 
     def changes(self, args=[]):
         args.insert(0, 'changes')
 
         result = self._exec(args)
-        return dict(output=uci_parse_output(result['output']), rc=result['rc'])
+        # TODO: fix multi-line changes, changes with key=value
+        output = uci_parse_value(result)
+
+        return output
+
+    def delete(self, args):
+        args.insert(0, 'delete')
+        self._exec(args)
 
     def commit(self, args=[]):
         args.insert(0, 'commit')
-        return dict(rc=self._exec(args)['rc'])
+        self._exec(args)
 
     def get(self, args=[]):
         args.insert(0, 'get')
+        return uci_parse_value(self._exec(args))
 
-        result = self._exec(args)
-        return dict(output=uci_parse_value(result['output']), rc=result['rc'])
-
-    def set(self, args=None):
+    def set(self, args):
         args.insert(0, 'set')
-        return dict(rc=self._exec(args)['rc'])
+        self._exec(args)
+
+    def section_name(self, key, trimconfig=False):
+        args = '.'.join(key.split('.')[0:2])
+
+        output = list(self.show([args]))[0]
+        if trimconfig:
+            return output.split('.')[1]
+        else:
+            return output
 
     def show(self, args=[]):
         args.insert(0, 'show')
-
-        result = self._exec(args)
-        return dict(output=uci_parse_output(result['output']), rc=result['rc'])
+        return uci_parse_output(self._exec(args))
 
     def version(self):
-        opkg = self.module.get_bin_path('opkg')
+        opkg = get_bin_path('opkg')
         if opkg:
             rc, out, err = self.module.run_command([opkg, 'info', 'uci'])
             if rc == 0:
