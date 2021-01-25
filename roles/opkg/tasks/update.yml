@@ -1,0 +1,14 @@
+---
+
+- name: Check package update tool
+  check_mode: no
+  changed_when: false
+  command: '{{ opkg_update_tool }} --version'
+
+- name: Include tasks for opkg package update
+  include_tasks: opkg_update.yml
+  when: opkg_update_tool == 'opkg'
+
+- name: Include tasks for pkgupdate
+  include_tasks: pkgupdate.yml
+  when: opkg_update_tool == 'pkgupdate'

@@ -1,0 +1,21 @@
+---
+
+- name: Run pkgupdate
+  command: >
+    pkgupdate
+    --batch
+    {{ opkg_update_pkgupdate_args | join(' ') }}
+    {{ '--no-immediate-reboot' if (not opkg_update_reboot|bool) else '' }}
+  register: opkg_register_pkgupdate_cmd
+
+- name: Wait for reboot
+  delegate_to: '{{ opkg_reboot_check_delegate_to }}'
+  wait_for:
+    delay: 5
+    host: '{{ ansible_host }}'
+    port: '{{ ansible_port | default(22) }}'
+    search_regex: 'SSH-2.0-OpenSSH'
+    timeout: 180
+  when:
+    - opkg_update_reboot|bool
+    - opkg_register_pkgupdate_cmd is changed

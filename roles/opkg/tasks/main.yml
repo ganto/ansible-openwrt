@@ -25,6 +25,7 @@
     mode: '0644'
   vars:
     opkg_tmpl_feeds: '{{ opkg_dist_feeds }}'
+  register: opkg_register_distfeeds
 
 - name: Custom repository feeds
   template:
@@ -35,3 +36,14 @@
     mode: '0644'
   vars:
     opkg_tmpl_feeds: '{{ opkg_custom_feeds }}'
+  register: opkg_register_customfeeds
+
+- name: Update opkg feeds
+  command: opkg update
+  when: (opkg_register_distfeeds is changed
+         or opkg_register_customfeeds is changed
+         or opkg_update_feeds)
+
+- name: Include tasks to update packages
+  include_tasks: update.yml
+  when: opkg_update_packages|bool

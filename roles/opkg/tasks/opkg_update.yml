@@ -1,0 +1,27 @@
+---
+
+- name: Query packages pending an update
+  check_mode: no
+  command: opkg list-upgradable
+  register: opkg_register_upgradable
+
+- name: Set update package list fact
+  set_fact:
+    opkg_fact_upgradable: >
+      {%- set _pkg_list = [] -%}
+      {%- for _pkg in opkg_register_upgradable.stdout_lines -%}
+      {%-   set _ = _pkg_list.append(_pkg.split()[0]) -%}
+      {%- endfor -%}
+      {{ _pkg_list }}
+
+- name: Update packages
+  command: >
+    opkg upgrade
+    {{ opkg_update_opkg_args | join(' ') }}
+    {{ opkg_fact_upgradable | join(' ') }}
+  when: opkg_fact_upgradable | length > 0
+  register: opkg_register_upgrade
+
+- name: Reboot host
+  reboot:
+  when: opkg_update_reboot_packages | intersect(opkg_fact_upgradable) | length > 0

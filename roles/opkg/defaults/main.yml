@@ -29,10 +29,6 @@ opkg_default_cfg_options:
   # Performs a signature check against the package index.
   check_signature: 1
 
-  # Removes packages that where installed automatically in order to satisfy
-  # dependencies.
-  autoremove: 1
-
 # Dictionary of custom configuration options to be defined in `/etc/opkg.conf`.
 opkg_custom_cfg_options: {}
 
@@ -126,3 +122,38 @@ opkg_default_dist_feeds:
 # Configuration dictionary of custom repository feeds to be defined in
 # `/etc/opkg/customfeeds.conf`. The format corresponds to `opkg_dist_feeds`.
 opkg_custom_feeds: {}
+
+# Always update repository feeds when running the role. By default the feeds
+# are only updated if `opkg_update_packages: true` or if the feed configuration
+# was changed.
+opkg_update_feeds: '{{ true if opkg_update_packages|bool else false }}'
+
+# Update all packages to the latest version when running the role.
+opkg_update_packages: false
+
+# Name of tool used for package updates. Accepts `opkg` (default for OpenWRT)
+# or `pkgupdate` (default for TurrisOS).
+opkg_update_tool: '{{ "pkgupdate" if (ansible_distribution == "TurrisOS")
+                                  else "opkg" }}'
+
+# List of custom arguments added to the `opkg` update command if
+# `opkg_update_tool: opkg`.
+opkg_update_opkg_args: []
+
+# List of custom arguments added to the `pkgupdate` command if
+# `opkg_update_tool: pkgupdate`.
+opkg_update_pkgupdate_args: []
+
+# Reboot host in case packages listed in `opkg_update_reboot_packages` were
+# updated. Setting will be ignored if `opkg_update_packages: false`.
+opkg_update_reboot: true
+
+# List of package names that trigger a host reboot. Setting will be ignored
+# if `opkg_update_packages` or `opkg_update_reboot` is set to `false`.
+opkg_update_reboot_packages:
+  - kernel
+
+# Host name (or inventory name) of host to which the task for the SSH check
+# after reboot is delegated to. Set this to a jump host if the target host is
+# not directly reachable from the Ansible controller.
+opkg_reboot_check_delegate_to: localhost
