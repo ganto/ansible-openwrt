@@ -121,6 +121,9 @@ def main():
             result['result'].update(committed=False)
 
     if not command:
+        if not module.params['commit']:
+            module.fail_json(msg="At least 'command' or 'commit' must be defined.")
+
         # If no command is defined then we should only commit.
         # Always add potential changes to result.
         result['result'].update(changes=changes)
@@ -172,9 +175,23 @@ def main():
         # Get or set a value
         if command in ['get', 'set']:
 
-            current_value = uci.get(
-                ['.'.join(n for n in input.values() if n is not None)])
-            input_value = module.params['value']
+            try:
+                current_value = uci.get(
+                    ['.'.join(n for n in input.values() if n is not None)])
+
+            except OSError as e:
+                if e.strerror != 'Entry not found':
+                    raise(e)
+                else:
+                    if command == 'set':
+                        current_value = ''
+                    else:
+                        module.fail_json(msg=e.strerror)
+
+            if command == 'set':
+                input_value = module.params['value']
+                if input_value.isdigit():
+                    input_value = int(input_value)
 
             if (command == 'set' and input_value != current_value):
 
