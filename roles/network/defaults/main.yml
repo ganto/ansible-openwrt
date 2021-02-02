@@ -1,0 +1,98 @@
+---
+
+# Abort if there are uncommitted network changes before running this role
+network_abort_uncommitted: true
+
+# A YAML dictionary which defines global networking options.
+network_globals_config: '{{ network_globals_default_config | combine(network_globals_custom_config) }}'
+
+# A YAML dictionary which defines the global networking options that are set
+# by default.
+network_globals_default_config:
+  # Set a IPv6 Unique Local Address prefix that can be used to statically
+  # address hosts in the local network. The lookup filter will check the
+  # network interfaces for a ULA prefix that is in use and if none is found
+  # generate a new one.
+  ula_prefix: '{{ lookup("template", "lookup/ula_prefix.j2", convert_data=false) | from_yaml }}'
+
+# A YAML dictionary which defines the user defined global networking options
+# that are used to overwrite or extend the default global options.
+network_globals_custom_config: {}
+
+# A YAML dictionary with different network interface configurations:
+#
+# ``single_static``
+#   One Ethernet interface with static configuration taken from the Ansible
+#   facts.
+#
+# ``single_dynamic``
+#   One Ethernet interface set to DHCP.
+#
+# ``router``
+#   Two Ethernet interfaces, a 'wan' interface with DHCP and a 'lan' interface
+#   with static IP address taken from the Ansible facts.
+#
+# ``manual``
+#   Do not use any network interface layout and do not configure any interface.
+#
+network_default_interfaces_map:
+
+  single_static:
+    wan:
+      ifname: '{{ ansible_default_ipv4.interface }}'
+      ipaddr: '{{ ansible_default_ipv4.address }}'
+      netmask: '{{ ansible_default_ipv4.netmask }}'
+      ipv6: 1
+      proto: static
+
+  single_dynamic:
+    wan:
+      ifname: '{{ ansible_default_ipv4.interface }}'
+      ipv6: 1
+      proto: dhcp
+
+  router:
+    wan:
+      ifname: '{{ ansible_default_ipv4.interface }}'
+      ipv6: 1
+      proto: dhcp
+    lan:
+      ifname: eth1
+      ipaddr: '192.168.1.1'
+      ip6assign: '60'
+      netmask: '255.255.255.0'
+      proto: static
+
+  manual: {}
+
+# Name of the "network interface layout" defined in the
+# `network_default_interfaces_map` initial state of the network interfaces. This
+# name is used in the `network_default_interfaces` variable to select a network
+# layout.
+#
+# If you want to define your own layout or skip Ansible network interface
+# configuration entirely set this to `manual`.
+network_interface_layout: router
+
+# YAML dictionary which holds the default configuration applied to the network
+# interfaces, depending on the selected interface layout.
+network_default_interfaces: '{{ network_default_interfaces_map[network_interface_layout] | default({}) }}'
+
+# YAML dictionary which holds the configuration of network interfaces.
+network_interfaces: {}
+
+# YAML dictionary which combines all of the other network interface
+# configuration variables and is used in the role tasks and templates to
+# generate the configuration.
+network_combined_interfaces: '{{ lookup("template", "lookup/network_combined_interfaces.j2", convert_data=false) | from_yaml }}'
+
+# Commit UCI network changes to persistency.
+network_uci_commit: true
+
+# Restart network service after changes.
+network_restart: true
+
+# Host name (or inventory name) of host to which the task for the SSH check
+# after network restart is delegated to. Set this to a jump host if the target
+# host is not directly reachable from the Ansible controller.
+network_check_delegate_to: localhost

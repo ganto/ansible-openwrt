@@ -1,0 +1,14 @@
+---
+
+- name: Check for uncommitted UCI network changes
+  check_mode: no
+  changed_when: false
+  uci:
+    command: changes
+    config: network
+  register: network_register_uncommitted
+
+- name: Abort on uncommitted UCI network changes
+  fail:
+    msg: 'Please review and commit UCI changes before continue'
+  when: not network_register_uncommitted.result.committed

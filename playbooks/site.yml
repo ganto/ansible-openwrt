@@ -7,3 +7,7 @@
 
   roles:
     - name: opkg
+      tags: openwrt.opkg
+
+    - name: network
+      tags: openwrt.network

@@ -1,0 +1,21 @@
+---
+
+- name: '{{ network_include_interface.key }} - Define network interface'
+  uci:
+    command: set
+    config: network
+    section: '{{ network_include_interface.key }}'
+    value: interface
+  notify: 'Commit UCI changes'
+
+- name: '{{ network_include_interface.key }} - Set interface options'
+  uci:
+    command: set
+    config: network
+    section: '{{ network_include_interface.key }}'
+    option: '{{ item.key }}'
+    value: '{{ item.value }}'
+  loop: '{{ network_include_interface.value | dict2items }}'
+  loop_control:
+    label: '{{ item.key }}'
+  notify: 'Commit UCI changes'

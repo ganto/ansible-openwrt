@@ -1,0 +1,21 @@
+{# Copyright (c) 2021 Reto Gantenbein <reto.gantenbein>
+ # SPDX-License-Identifier: GPL-3.0-or-later
+ #}
+{% set _hex_chars = ['0', '1', '2', '3', '4', '5', '6', '7', '8', 'a', 'b', 'c', 'd', 'e', 'f'] %}
+{% set _ula_blocks = [] %}
+{% for _ip6addr in (ansible_all_ipv6_addresses | default([])) %}
+  {# Find a an IPv6 address that is part of the fd00::/8 ULA address range #}
+  {% if (_ip6addr | regex_search('^fd')) and (_ula_blocks | length == 0) %}
+    {# Check if we are the router for it #}
+    {% if _ip6addr.split(':')[-1] == '1' %}
+      {# Use the /48 prefix as ULA prefix #}
+      {% set _ = _ula_blocks.extend(_ip6addr.split(':')[0:3]) %}
+    {% endif %}
+  {% endif %}
+{% endfor %}
+{% if (_ula_blocks | length == 0) %}
+  {% set _ = _ula_blocks.append('fd' + (_hex_chars | random) + (_hex_chars | random)) %}
+  {% set _ = _ula_blocks.append((_hex_chars | random) + (_hex_chars | random) + (_hex_chars | random) + (_hex_chars | random)) %}
+  {% set _ = _ula_blocks.append((_hex_chars | random) + (_hex_chars | random) + (_hex_chars | random) + (_hex_chars | random)) %}
+{% endif %}
+{{ _ula_blocks | join(':') }}::/48
