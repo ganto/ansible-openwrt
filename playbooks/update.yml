@@ -1,0 +1,12 @@
+---
+
+- hosts: all
+  become: true
+  collections:
+    - ganto.openwrt
+
+  vars:
+    opkg_update_packages: true
+
+  roles:
+    - name: opkg
