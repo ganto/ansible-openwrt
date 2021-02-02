@@ -14,7 +14,7 @@
     delay: 5
     host: '{{ ansible_host }}'
     port: '{{ ansible_port | default(22) }}'
-    search_regex: 'SSH-2.0-OpenSSH'
+    search_regex: 'SSH-2.0'
     timeout: 180
   when:
     - opkg_update_reboot|bool
