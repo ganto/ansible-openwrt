@@ -247,8 +247,14 @@ def main():
             if not module.params['named']:
                 result['result'].update(section=input['section'])
             else:
-                section = uci.section_name("%s.%s" % (input['config'], input['section']),
-                                           trimconfig=True)
+                try:
+                    section = uci.section_name("%s.%s" % (input['config'], input['section']),
+                                               trimconfig=True)
+                except OSError as e:
+                    if e.strerror != 'Entry not found':
+                        raise(e)
+                    section = input['section']
+
                 result['result'].update(section=section)
 
             if input['option']:
