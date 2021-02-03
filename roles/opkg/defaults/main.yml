@@ -32,6 +32,10 @@ opkg_default_cfg_options:
 # Dictionary of custom configuration options to be defined in `/etc/opkg.conf`.
 opkg_custom_cfg_options: {}
 
+#
+# Feed (package repository) configuration
+#
+
 # Configuration dictionary of distribution repository feeds to be defined in
 # `/etc/opkg/distfeeds.conf`. The following dictinary keys must be defined:
 #
@@ -127,6 +131,24 @@ opkg_custom_feeds: {}
 # are only updated if `opkg_update_packages: true` or if the feed configuration
 # was changed.
 opkg_update_feeds: '{{ true if opkg_update_packages|bool else false }}'
+
+#
+# Package installation configuration
+#
+
+# List of packages to be installed when running the role.
+opkg_install_packages: '{{ opkg_default_install_packages | union(opkg_custom_install_packages) }}'
+
+# List of packages to be installed by default.
+opkg_default_install_packages:
+  - diffutils
+
+# List of user defined packages to be installed.
+opkg_custom_install_packages: []
+
+#
+# Package update configuration
+#
 
 # Update all packages to the latest version when running the role.
 opkg_update_packages: false

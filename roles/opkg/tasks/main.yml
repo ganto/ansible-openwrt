@@ -44,6 +44,12 @@
          or opkg_register_customfeeds is changed
          or opkg_update_feeds)
 
+- name: Install packages
+  package:
+    name: '{{ item }}'
+    state: present
+  loop: '{{ opkg_install_packages }}'
+
 - name: Include tasks to update packages
   include_tasks: update.yml
-  when: opkg_update_packages|bool
+  when: opkg_update_packages | bool
