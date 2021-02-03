@@ -1,7 +1,7 @@
 ---
-
-# Abort if there are uncommitted network changes before running this role
-network_abort_uncommitted: true
+#
+# Global network configuration
+#
 
 # A YAML dictionary which defines global networking options.
 network_globals_config: '{{ network_globals_default_config | combine(network_globals_custom_config) }}'
@@ -18,6 +18,10 @@ network_globals_default_config:
 # A YAML dictionary which defines the user defined global networking options
 # that are used to overwrite or extend the default global options.
 network_globals_custom_config: {}
+
+#
+# Network interface configuration
+#
 
 # A YAML dictionary with different network interface configurations:
 #
@@ -85,6 +89,13 @@ network_interfaces: {}
 # configuration variables and is used in the role tasks and templates to
 # generate the configuration.
 network_combined_interfaces: '{{ lookup("template", "lookup/network_combined_interfaces.j2", convert_data=false) | from_yaml }}'
+
+#
+# Generic role behavior
+#
+
+# Abort if there are uncommitted network changes before running this role.
+network_abort_uncommitted: true
 
 # Commit UCI network changes to persistency.
 network_uci_commit: true
