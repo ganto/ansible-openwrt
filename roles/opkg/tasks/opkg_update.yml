@@ -2,6 +2,7 @@
 
 - name: Query packages pending an update
   check_mode: no
+  changed_when: false
   command: opkg list-upgradable
   register: opkg_register_upgradable
 
@@ -13,6 +14,11 @@
       {%-   set _ = _pkg_list.append(_pkg.split()[0]) -%}
       {%- endfor -%}
       {{ _pkg_list }}
+
+- name: Show package update list
+  debug:
+    msg: 'There are {{ opkg_fact_upgradable | length }} packages to be updated: {{ opkg_fact_upgradable | join(", ") }}'
+  when: opkg_fact_upgradable | length > 0
 
 - name: Update packages
   command: >
