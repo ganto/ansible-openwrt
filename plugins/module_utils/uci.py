@@ -60,6 +60,10 @@ class UnifiedConfigurationInterface():
         args.insert(0, 'add')
         return uci_parse_value(self._exec(args))
 
+    def add_list(self, args):
+        args.insert(0, 'add_list')
+        self._exec(args)
+
     def changes(self, args=[]):
         args.insert(0, 'changes')
 

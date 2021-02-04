@@ -61,14 +61,14 @@ def main():
     module = AnsibleModule(
         argument_spec=dict(
             command=dict(type='str',
-                         choices=['add', 'changes', 'delete', 'get', 'revert', 'set']),
+                         choices=['add', 'add_list', 'changes', 'delete', 'get', 'revert', 'set']),
             commit=dict(type='bool', default=False),
             config=dict(type='str'),
             key=dict(type='str'),
             named=dict(type='bool', default=True),
             option=dict(type='str'),
             section=dict(type='str'),
-            value=dict(type='str'),
+            value=dict(type='list', elements='str'),
         ),
         mutually_exclusive=[['key', 'config'],
                             ['key', 'section'],
@@ -135,13 +135,18 @@ def main():
                 module.fail_json(
                     msg="Command '%s' requires 'config' or 'key' to be defined." % command)
 
-        if command in ['add', 'get', 'set']:
+        if command in ['add', 'add_list', 'get', 'set']:
             for element in ['config', 'section']:
                 if not input[element]:
                     module.fail_json(
                         msg="Command '%s' requires '%s' or 'key' to be defined." % (command, element))
 
-        if command in ['set']:
+        if command in ['add_list']:
+            if not input['option']:
+                module.fail_jsoin(
+                    msg="Command '%s' requires 'option' to be defined." % command)
+
+        if command in ['add_list', 'set']:
             if not module.params['value']:
                 module.fail_json(
                     msg="Command '%s' requires 'value' to be defined." % command)
@@ -173,7 +178,7 @@ def main():
                                          if n is not None)])
 
         # Get or set a value
-        if command in ['get', 'set']:
+        if command in ['add_list', 'get', 'set']:
 
             try:
                 current_value = uci.get(
@@ -183,25 +188,43 @@ def main():
                 if e.strerror != 'Entry not found':
                     raise(e)
                 else:
-                    if command == 'set':
+                    if command in ['add_list', 'set']:
                         current_value = ''
                     else:
                         module.fail_json(msg=e.strerror)
 
-            if command == 'set':
-                input_value = module.params['value']
-                if input_value.isdigit():
-                    input_value = int(input_value)
+            if command in ['add_list', 'set']:
+                # Check if we have a string or a list
+                if len(module.params['value']) == 1:
+                    input_value = module.params['value'][0]
+                    if input_value.isdigit():
+                        input_value = int(input_value)
+                else:
+                    if (not type(current_value) is list) and len(current_value) > 0:
+                        current_value = [current_value]
+                    if command == 'add_list':
+                        input_value = list(current_value)
+                        for val in module.params['value']:
+                            if val not in input_value:
+                                input_value.append(val)
+                    else:
+                        input_value = module.params['value']
 
-            if (command == 'set' and input_value != current_value):
+            if (command in ['add_list', 'set'] and input_value != current_value):
 
                 diff['before'].update(value=current_value)
                 diff['after'].update(value=input_value)
                 result['changed'] = True
 
                 if not module.check_mode:
-                    uci.set(['.'.join(n for n in input.values()
-                                      if n is not None) + ('=%s' % input_value)])
+                    key = '.'.join(n for n in input.values() if n is not None)
+                    if type(input_value) is list:
+                        if len(current_value) > 0:
+                            uci.delete([key])
+                        for val in input_value:
+                            uci.add_list(['%s=%s' % (key, val)])
+                    else:
+                        uci.set(['%s=%s' % (key, input_value)])
 
                 result['result'].update(value=input_value)
             else:
