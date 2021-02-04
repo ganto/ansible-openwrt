@@ -11,3 +11,6 @@
 
     - name: network
       tags: openwrt.network
+
+    - name: system
+      tags: openwrt.system

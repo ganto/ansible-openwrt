@@ -1,0 +1,56 @@
+---
+
+- name: Include tasks to check for uncommitted system changes
+  include_tasks: check_changes.yml
+  when: system_abort_uncommitted|bool
+
+- name: Gather UCI system facts
+  check_mode: no
+  uci_facts:
+    config: system
+
+- name: Manage UCI system NTP section
+  uci:
+    command: set
+    config: system
+    section: ntp
+    value: timeserver
+  notify: 'Commit UCI changes'
+
+- name: Enable or disable NTP client
+  uci:
+    command: set
+    config: system
+    section: ntp
+    option: enabled
+    value: '{{ 1 if (system_ntp_enabled | bool) else 0 }}'
+  notify: 'Commit UCI changes'
+
+- name: Configure NTP client
+  uci:
+    command: '{{ "set" if (system_ntp_enabled | bool)
+                       else "delete" }}'
+    config: system
+    section: ntp
+    option: '{{ item.key }}'
+    value: '{{ item.value }}'
+  with_dict:
+    enable_server: '{{ 1 if (system_ntp_daemon | bool) else 0 }}'
+    server: '{{ system_ntp_servers }}'
+    use_dhcp: '{{ 1 if (system_ntp_use_dhcp | bool) else 0 }}'
+  loop_control:
+    label: '{{ item.key }}'
+  notify: 'Commit UCI changes'
+
+- name: Trigger handlers
+  meta: flush_handlers
+
+- name: Restart sysntpd
+  service:
+    name: sysntpd
+    enabled: '{{ true if (system_ntp_enabled | bool) else false }}'
+    state: '{{ "stopped"
+               if (not system_ntp_enabled | bool)
+               else ("restarted"
+                     if ((system_register_uci_commit | default({})) is changed)
+                     else "started") }}'

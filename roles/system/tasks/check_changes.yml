@@ -1,0 +1,14 @@
+---
+
+- name: Check for uncommitted UCI system changes
+  check_mode: no
+  changed_when: false
+  uci:
+    command: changes
+    config: system
+  register: system_register_uncommitted
+
+- name: Abort on uncommitted UCI system changes
+  fail:
+    msg: 'Please review and commit UCI changes before continue'
+  when: not system_register_uncommitted.result.committed

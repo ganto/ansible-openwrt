@@ -1,0 +1,37 @@
+---
+#
+# NTP client/server configuration
+#
+# By default OpenWRT will use the busybox-ntpd to either sync the time via NTP
+# at startup when used as a client or run as daemon when to provide the NTP
+# service via network. It can be replaced with an alternative NTP client or
+# daemon (e.g. ISC ntpd) which must be configured seperatly. The default
+# configuration of this role mostly corresponds to the default configuration
+# of OpenWRT.
+
+# Enable NTP time synchronization at startup.
+system_ntp_enabled: true
+
+# Use NTP servers provided via DHCP for time synchronization.
+system_ntp_use_dhcp: true
+
+# List of NTP servers used for for time synchronization if none provided via
+# DHCP.
+system_ntp_servers:
+  - 0.openwrt.pool.ntp.org
+  - 1.openwrt.pool.ntp.org
+  - 2.openwrt.pool.ntp.org
+  - 3.openwrt.pool.ntp.org
+
+# Enable NTP daemon that can be queried by other network hosts.
+system_ntp_daemon: false
+
+#
+# Generic role behavior
+#
+
+# Abort if there are uncommitted system changes before running this role.
+system_abort_uncommitted: true
+
+# Commit UCI system changes to persistency.
+system_uci_commit: true
