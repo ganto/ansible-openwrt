@@ -9,6 +9,38 @@
   uci_facts:
     config: system
 
+- name: Configure hostname
+  uci:
+    command: set
+    config: system
+    section: '@system[0]'
+    option: hostname
+    value: '{{ system_hostname }}'
+  notify: 'Commit UCI changes'
+
+- name: Configure timezone
+  uci:
+    command: set
+    config: system
+    section: '@system[0]'
+    option: zonename
+    value: '{{ system_timezone }}'
+  notify: 'Commit UCI changes'
+
+- name: Configure UCI system options
+  uci:
+    command: set
+    config: system
+    section: '@system[0]'
+    option: '{{ item.key }}'
+    value: '{{ item.value
+               if (item.value not in [true, false])
+               else (1 if item.value else 0) }}'
+  loop: '{{ system_options | dict2items }}'
+  loop_control:
+    label: '{{ (item.key + ": " +  (item.value | string)) | to_json }}'
+  notify: 'Commit UCI changes'
+
 - name: Manage UCI system NTP section
   uci:
     command: set
@@ -39,7 +71,7 @@
     server: '{{ system_ntp_servers }}'
     use_dhcp: '{{ 1 if (system_ntp_use_dhcp | bool) else 0 }}'
   loop_control:
-    label: '{{ item.key }}'
+    label: '{{ (item.key + ": " +  (item.value | string)) | to_json }}'
   notify: 'Commit UCI changes'
 
 - name: Trigger handlers

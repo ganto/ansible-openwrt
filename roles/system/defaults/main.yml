@@ -1,5 +1,31 @@
 ---
 #
+# Generic system configuration
+#
+
+# Host name
+system_hostname: openwrt
+
+# Timezone of the system. Corresponds to the `zonename` UCI option.
+system_timezone: UTC
+
+# YAML dictionary that defines the UCI system options such as system logging
+# level and remote log server. For the full list of options see:
+#   https://openwrt.org/docs/guide-user/base-system/system_configuration
+#
+system_options: '{{ system_default_options | combine(system_custom_options) }}'
+
+# YAML dictionary that defines the default UCI systems options.
+system_default_options:
+  conloglevel: 8
+  cronloglevel: 5
+  log_size: 64
+  ttylogin: false
+
+# YAML dictionary that defines the user defined UCI systems options.
+system_custom_options: {}
+
+#
 # NTP client/server configuration
 #
 # By default OpenWRT will use the busybox-ntpd to either sync the time via NTP
