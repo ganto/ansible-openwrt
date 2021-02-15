@@ -1,5 +1,7 @@
 # Ansible Collection: ganto.openwrt
 
+[![CI](https://github.com/ganto/ansible-openwrt/workflows/CI/badge.svg?event=push)](https://github.com/ganto/ansible-openwrt/actions?query=workflow%3ACI)
+
 This Ansible collection consists of modules and roles to manage [OpenWRT](https://openwrt.org/) based systems.
 
 _IMPORTANT: This collection is still in early development and cannot be installed via Ansible Galaxy yet. Check the bundled [Molecule](https://molecule.readthedocs.io/) tests for the implemented use-cases. Everything else is not tested!_
