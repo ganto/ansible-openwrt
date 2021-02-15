@@ -6,11 +6,11 @@
 
 - name: Gather UCI system facts
   check_mode: no
-  uci_facts:
+  ganto.openwrt.uci_facts:
     config: system
 
 - name: Configure hostname
-  uci:
+  ganto.openwrt.uci:
     command: set
     config: system
     section: '@system[0]'
@@ -19,7 +19,7 @@
   notify: 'Commit UCI changes'
 
 - name: Configure timezone
-  uci:
+  ganto.openwrt.uci:
     command: set
     config: system
     section: '@system[0]'
@@ -28,7 +28,7 @@
   notify: 'Commit UCI changes'
 
 - name: Configure UCI system options
-  uci:
+  ganto.openwrt.uci:
     command: set
     config: system
     section: '@system[0]'
@@ -42,7 +42,7 @@
   notify: 'Commit UCI changes'
 
 - name: Manage UCI system NTP section
-  uci:
+  ganto.openwrt.uci:
     command: set
     config: system
     section: ntp
@@ -50,7 +50,7 @@
   notify: 'Commit UCI changes'
 
 - name: Enable or disable NTP client
-  uci:
+  ganto.openwrt.uci:
     command: set
     config: system
     section: ntp
@@ -59,7 +59,7 @@
   notify: 'Commit UCI changes'
 
 - name: Configure NTP client
-  uci:
+  ganto.openwrt.uci:
     command: '{{ "set" if (system_ntp_enabled | bool)
                        else "delete" }}'
     config: system

@@ -1,7 +1,7 @@
 ---
 
 - name: '{{ network_include_interface.key }} - Define network interface'
-  uci:
+  ganto.openwrt.uci:
     command: set
     config: network
     section: '{{ network_include_interface.key }}'
@@ -9,7 +9,7 @@
   notify: 'Commit UCI changes'
 
 - name: '{{ network_include_interface.key }} - Set interface options'
-  uci:
+  ganto.openwrt.uci:
     command: set
     config: network
     section: '{{ network_include_interface.key }}'

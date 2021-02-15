@@ -3,7 +3,7 @@
 - name: Check for uncommitted UCI network changes
   check_mode: no
   changed_when: false
-  uci:
+  ganto.openwrt.uci:
     command: changes
     config: network
   register: network_register_uncommitted

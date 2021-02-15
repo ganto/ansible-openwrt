@@ -1,7 +1,7 @@
 ---
 
 - name: Commit UCI changes
-  uci:
+  ganto.openwrt.uci:
     commit: true
   when: system_uci_commit | bool
   register: system_register_uci_commit

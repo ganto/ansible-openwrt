@@ -6,11 +6,11 @@
 
 - name: Gather UCI network facts
   check_mode: no
-  uci_facts:
+  ganto.openwrt.uci_facts:
     config: network
 
 - name: Manage UCI network globals section
-  uci:
+  ganto.openwrt.uci:
     command: '{{ "set" if (network_globals_config | length > 0)
                        else "delete" }}'
     config: network
@@ -24,7 +24,7 @@
 - name: Set UCI network globals options
   # the globals section might not exist yet when running in check mode
   ignore_errors: '{{ ansible_check_mode }}'
-  uci:
+  ganto.openwrt.uci:
     command: set
     config: network
     section: globals
