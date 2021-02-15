@@ -21,7 +21,7 @@
   when: ((network_globals_config | length > 0) and
          ('network.globals' not in ansible_facts.uci.keys())) or
         (network_globals_config | length == 0)
-  notify: 'Commit UCI changes'
+  notify: 'Commit UCI network changes'
 
 - name: Set UCI network globals options
   # the globals section might not exist yet when running in check mode
@@ -35,7 +35,7 @@
   loop: '{{ network_globals_config | dict2items }}'
   loop_control:
     label: '{{ item.key }}'
-  notify: 'Commit UCI changes'
+  notify: 'Commit UCI network changes'
 
 - name: Include tasks to configure network interface
   include_tasks: interface.yml

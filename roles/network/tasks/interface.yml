@@ -8,7 +8,7 @@
     config: network
     section: '{{ network_include_interface.key }}'
     value: interface
-  notify: 'Commit UCI changes'
+  notify: 'Commit UCI network changes'
 
 - name: '{{ network_include_interface.key }} - Set interface options'
   ganto.openwrt.uci:
@@ -20,4 +20,4 @@
   loop: '{{ network_include_interface.value | dict2items }}'
   loop_control:
     label: '{{ item.key }}'
-  notify: 'Commit UCI changes'
+  notify: 'Commit UCI network changes'
