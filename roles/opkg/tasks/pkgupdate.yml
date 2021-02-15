@@ -6,7 +6,7 @@
     --batch
     {{ opkg_update_pkgupdate_args | join(' ') }}
     {{ '--no-immediate-reboot' if (not opkg_update_reboot|bool) else '' }}
-  register: opkg_register_pkgupdate_cmd
+  register: opkg_register_pkgupdate_cmd  # noqa no-changed-when
 
 - name: Wait for reboot
   delegate_to: '{{ opkg_reboot_check_delegate_to }}'
