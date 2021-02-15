@@ -48,7 +48,7 @@ network_default_interfaces_map:
     wan:
       ifname: '{{ ansible_default_ipv4.interface }}'
       ipaddr: '{{ ansible_default_ipv4.address }}'
-      netmask: '{{ ansible_default_ipv4.netmask }}'
+      netmask: '{{ ansible_default_ipv4.netmask | default("255.255.255.0") }}'
       ipv6: 1
       proto: static
 
