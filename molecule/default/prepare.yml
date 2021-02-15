@@ -1,0 +1,14 @@
+---
+# Copyright (C) 2021 Reto Gantenbein <reto.gantenbein@linuxmonk.ch>
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+- name: Prepare
+  hosts: all
+  gather_facts: false
+
+  tasks:
+    - name: Update package metadata
+      raw: opkg update
+
+    - name: Install Python 3
+      raw: opkg install python3
