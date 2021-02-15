@@ -1,0 +1,42 @@
+---
+name: CI
+'on':
+  pull_request:
+  push:
+    branches:
+      - master
+
+defaults:
+  run:
+    working-directory: 'openwrt'
+
+jobs:
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v2
+        with:
+          path: 'openwrt'
+
+      - name: Set up Python 3.
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install test dependencies.
+        run: pip3 install yamllint ansible-lint[community]
+
+      - name: Link codebase to Ansible collections path.
+        run: |
+          mkdir -p ~/.ansible/collections/ansible_collections/ganto
+          ln -s $(pwd) ~/.ansible/collections/ansible_collections/ganto
+        shell: bash
+
+      - name: Lint code.
+        run: |
+          yamllint .
+          ansible-lint
