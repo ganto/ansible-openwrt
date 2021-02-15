@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-# Copyright (c) 2021, Reto Gantenbein <reto.gantenbein@linuxmonk.ch>
+# Copyright (C) 2021, Reto Gantenbein <reto.gantenbein@linuxmonk.ch>
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import (absolute_import, division, print_function)
