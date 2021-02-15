@@ -34,7 +34,7 @@
     value: '{{ item.value }}'
   loop: '{{ network_globals_config | dict2items }}'
   loop_control:
-    label: '{{ item.key }}'
+    label: '{{ (item.key + ": " +  (item.value | string)) | to_json }}'
   notify: 'Commit UCI network changes'
 
 - name: Include tasks to configure network interface
