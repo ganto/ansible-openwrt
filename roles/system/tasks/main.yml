@@ -18,7 +18,7 @@
     section: '@system[0]'
     option: hostname
     value: '{{ system_hostname }}'
-  notify: 'Commit UCI changes'
+  notify: 'Commit UCI system changes'
 
 - name: Configure timezone
   ganto.openwrt.uci:
@@ -27,7 +27,7 @@
     section: '@system[0]'
     option: zonename
     value: '{{ system_timezone }}'
-  notify: 'Commit UCI changes'
+  notify: 'Commit UCI system changes'
 
 - name: Configure UCI system options
   ganto.openwrt.uci:
@@ -41,7 +41,7 @@
   loop: '{{ system_options | dict2items }}'
   loop_control:
     label: '{{ (item.key + ": " +  (item.value | string)) | to_json }}'
-  notify: 'Commit UCI changes'
+  notify: 'Commit UCI system changes'
 
 - name: Manage UCI system NTP section
   ganto.openwrt.uci:
@@ -49,7 +49,7 @@
     config: system
     section: ntp
     value: timeserver
-  notify: 'Commit UCI changes'
+  notify: 'Commit UCI system changes'
 
 - name: Enable or disable NTP client
   ganto.openwrt.uci:
@@ -58,7 +58,7 @@
     section: ntp
     option: enabled
     value: '{{ 1 if (system_ntp_enabled | bool) else 0 }}'
-  notify: 'Commit UCI changes'
+  notify: 'Commit UCI system changes'
 
 - name: Configure NTP client
   ganto.openwrt.uci:
@@ -74,7 +74,7 @@
     use_dhcp: '{{ 1 if (system_ntp_use_dhcp | bool) else 0 }}'
   loop_control:
     label: '{{ (item.key + ": " +  (item.value | string)) | to_json }}'
-  notify: 'Commit UCI changes'
+  notify: 'Commit UCI system changes'
 
 - name: Trigger handlers
   meta: flush_handlers

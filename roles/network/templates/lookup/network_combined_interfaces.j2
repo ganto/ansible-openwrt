@@ -5,7 +5,7 @@
 {% set _interfaces = {} %}
 {% for _interface, _config in network_default_interfaces.items() %}
 {%   if _interface in network_interfaces.keys() %}
-{%     set _ = _config.update(network_interfaces._interface) %}
+{%     set _ = _config.update(network_interfaces[_interface]) %}
 {%   endif %}
 {%   if ('state' in _config.keys() and _config['state'] == 'present') or ('state' not in _config.keys()) %}
 {%     set _ = _interfaces.update({_interface: _config}) %}
