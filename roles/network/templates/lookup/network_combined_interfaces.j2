@@ -11,4 +11,7 @@
 {%     set _ = _interfaces.update({_interface: _config}) %}
 {%   endif %}
 {% endfor %}
+{% for _custom_interface in (network_interfaces.keys() | difference(network_default_interfaces.keys())) %}
+{%   set _ = _interfaces.update({_custom_interface: network_interfaces[_custom_interface]}) %}
+{% endfor %}
 {{ _interfaces | to_yaml }}
