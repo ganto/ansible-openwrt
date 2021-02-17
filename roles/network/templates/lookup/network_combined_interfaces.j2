@@ -1,6 +1,18 @@
 {#
  # Copyright (C) 2021 Reto Gantenbein <reto.gantenbein>
  # SPDX-License-Identifier: GPL-3.0-or-later
+ #
+ # This lookup template will merge the 'network_default_interfaces' variable
+ # that might contain some interface layout definitions given by the role author
+ # with the user-defined 'network_interfaces' variable.
+ #
+ # If an interface contains an 'state' attribute with a value other than 'present'
+ # the interface definition is ignored.
+ # TODO: In the future we might want to also delete interfaces when they explicitly
+ #       define 'state: absent' so we need a better approach which interfaces
+ #       should be ignored.
+ # TODO: Maybe a user also wish to use the same logic and define interfaces that
+ #       are ignored conditionally? Find some use cases...
  #}
 {% set _interfaces = {} %}
 {% for _interface, _config in network_default_interfaces.items() %}
@@ -10,5 +22,8 @@
 {%   if ('state' in _config.keys() and _config['state'] == 'present') or ('state' not in _config.keys()) %}
 {%     set _ = _interfaces.update({_interface: _config}) %}
 {%   endif %}
+{% endfor %}
+{% for _custom_interface in (network_interfaces.keys() | difference(network_default_interfaces.keys())) %}
+{%   set _ = _interfaces.update({_custom_interface: network_interfaces[_custom_interface]}) %}
 {% endfor %}
 {{ _interfaces | to_yaml }}
