@@ -10,7 +10,9 @@
     {# Check if we are the router for it #}
     {% if _ip6addr.split(':')[-1] == '1' %}
       {# Use the /48 prefix as ULA prefix #}
-      {% set _ = _ula_blocks.extend(_ip6addr.split(':')[0:3]) %}
+      {% for _block in _ip6addr.split(':')[0:3] %}
+        {% set _ = _ula_blocks.append(_block.zfill(4)) %}
+      {% endfor %}
     {% endif %}
   {% endif %}
 {% endfor %}
