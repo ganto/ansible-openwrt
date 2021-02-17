@@ -46,21 +46,21 @@ network_default_interfaces_map:
 
   single_static:
     wan:
-      ifname: '{{ ansible_default_ipv4.interface }}'
-      ipaddr: '{{ ansible_default_ipv4.address }}'
+      ifname: '{{ ansible_default_ipv4.interface | default("eth0") }}'
+      ipaddr: '{{ ansible_default_ipv4.address | default("192.168.1.1") }}'
       netmask: '{{ ansible_default_ipv4.netmask | default("255.255.255.0") }}'
       ipv6: 1
       proto: static
 
   single_dynamic:
     wan:
-      ifname: '{{ ansible_default_ipv4.interface }}'
+      ifname: '{{ ansible_default_ipv4.interface | default("eth0") }}'
       ipv6: 1
       proto: dhcp
 
   router:
     wan:
-      ifname: '{{ ansible_default_ipv4.interface }}'
+      ifname: '{{ ansible_default_ipv4.interface | default("eth0") }}'
       ipv6: 1
       proto: dhcp
     lan:
