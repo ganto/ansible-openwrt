@@ -20,13 +20,36 @@
     value: '{{ system_hostname }}'
   notify: 'Commit UCI system changes'
 
-- name: Configure timezone
+- name: Query timezone information from zonename
+  check_mode: no
+  changed_when: no
+  command: >
+    lua -e
+    "require('luci.sys.zoneinfo')
+    for _, zone in ipairs(luci.sys.zoneinfo.TZ) do
+      if zone[1] == '{{ system_timezone }}' then
+        print(zone[2])
+      end
+    end"
+  register: system_register_timezone
+
+- name: Set timezone and zonename
   ganto.openwrt.uci:
     command: set
     config: system
     section: '@system[0]'
-    option: zonename
-    value: '{{ system_timezone }}'
+    option: '{{ item.key }}'
+    value:
+      # must be passed as list item to prevent Ansible from parsing the value
+      # to individual list items when it contains ','
+      - '{{ item.value }}'
+  with_dict:
+    zonename: '{{ system_timezone }}'
+    timezone: '{{ system_register_timezone.stdout_lines[0]
+                  if (system_register_timezone.stdout_lines | length > 0)
+                  else "UTC" }}'
+  loop_control:
+    label: '{{ (item.key + ": " + item.value) | to_json }}'
   notify: 'Commit UCI system changes'
 
 - name: Configure UCI system options
