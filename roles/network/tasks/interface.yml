@@ -16,8 +16,10 @@
     config: network
     section: '{{ network_include_interface.key }}'
     option: '{{ item.key }}'
-    value: '{{ item.value }}'
+    value: '{{ item.value | ganto.openwrt.uci_type }}'
   loop: '{{ network_include_interface.value | dict2items }}'
   loop_control:
-    label: '{{ (item.key + ": " +  (item.value | string)) | to_json }}'
+    label: '{{ (item.key + ": "
+                +  (item.value | ganto.openwrt.uci_type | string))
+               | to_json }}'
   notify: 'Commit UCI network changes'
