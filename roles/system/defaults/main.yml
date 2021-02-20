@@ -9,8 +9,8 @@
 # Host name
 system_hostname: openwrt
 
-# Timezone of the system. Corresponds to the `zonename` UCI option.
-system_timezone: UTC
+# Timezone name of the system (e.g. 'Europe/London')
+system_zonename: UTC
 
 # YAML dictionary of UCI system options such as system logging level and remote
 # log server as they will be applied to the host. For the full list of options
@@ -74,3 +74,6 @@ system_abort_uncommitted: true
 
 # Commit UCI system changes to persistency.
 system_uci_commit: true
+
+# Restart system service after changes.
+system_service_restart: true
