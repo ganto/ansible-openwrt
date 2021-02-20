@@ -113,8 +113,6 @@ opkg_default_dist_feeds:
         path: luci
       - name: turrisos_node
         path: node
-      - name: turrisos_openwisp
-        path: openwisp
       - name: turrisos_packages
         path: packages
       - name: turrisos_routing
