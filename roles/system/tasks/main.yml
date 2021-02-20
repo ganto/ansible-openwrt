@@ -27,7 +27,7 @@
     lua -e
     "require('luci.sys.zoneinfo')
     for _, zone in ipairs(luci.sys.zoneinfo.TZ) do
-      if zone[1] == '{{ system_timezone }}' then
+      if zone[1] == '{{ system_zonename }}' then
         print(zone[2])
       end
     end"
@@ -44,7 +44,7 @@
       # to individual list items when it contains ','
       - '{{ item.value }}'
   with_dict:
-    zonename: '{{ system_timezone }}'
+    zonename: '{{ system_zonename }}'
     timezone: '{{ system_register_timezone.stdout_lines[0]
                   if (system_register_timezone.stdout_lines | length > 0)
                   else "UTC" }}'
