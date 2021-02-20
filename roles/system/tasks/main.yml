@@ -35,12 +35,12 @@
     config: system
     section: '@system[0]'
     option: '{{ item.key }}'
-    value: '{{ item.value
-               if (item.value not in [true, false])
-               else (1 if item.value else 0) }}'
+    value: '{{ item.value | ganto.openwrt.uci_type }}'
   loop: '{{ system_options | dict2items }}'
   loop_control:
-    label: '{{ (item.key + ": " +  (item.value | string)) | to_json }}'
+    label: '{{ (item.key + ": "
+                + (item.value | ganto.openwrt.uci_type | string))
+               | to_json }}'
   notify: 'Commit UCI system changes'
 
 - name: Manage UCI system NTP section
@@ -57,7 +57,7 @@
     config: system
     section: ntp
     option: enabled
-    value: '{{ 1 if (system_ntp_enabled | bool) else 0 }}'
+    value: '{{ system_ntp_enabled | ganto.openwrt.uci_type }}'
   notify: 'Commit UCI system changes'
 
 - name: Configure NTP client
@@ -67,13 +67,15 @@
     config: system
     section: ntp
     option: '{{ item.key }}'
-    value: '{{ item.value }}'
+    value: '{{ item.value | ganto.openwrt.uci_type }}'
   with_dict:
-    enable_server: '{{ 1 if (system_ntp_daemon | bool) else 0 }}'
+    enable_server: '{{ system_ntp_daemon | ganto.openwrt.uci_type }}'
     server: '{{ system_ntp_servers }}'
-    use_dhcp: '{{ 1 if (system_ntp_use_dhcp | bool) else 0 }}'
+    use_dhcp: '{{ system_ntp_use_dhcp | ganto.openwrt.uci_type }}'
   loop_control:
-    label: '{{ (item.key + ": " +  (item.value | string)) | to_json }}'
+    label: '{{ (item.key + ": "
+                +  (item.value | ganto.openwrt.uci_type | string))
+               | to_json }}'
   notify: 'Commit UCI system changes'
 
 - name: Trigger handlers
