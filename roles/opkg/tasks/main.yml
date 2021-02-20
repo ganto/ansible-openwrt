@@ -38,6 +38,7 @@
     mode: '0644'
   vars:
     opkg_tmpl_feeds: '{{ opkg_custom_feeds }}'
+    opkg_tmpl_feeds_custom: true
   register: opkg_register_customfeeds
 
 - name: Update opkg feeds
