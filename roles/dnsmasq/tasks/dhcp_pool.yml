@@ -1,0 +1,25 @@
+---
+# Copyright (C) 2021 Reto Gantenbein <reto.gantenbein@linuxmonk.ch>
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+- name: '{{ dnsmasq_include_dhcp_pool.key }} - Define DHCP pool'
+  ganto.openwrt.uci:
+    command: set
+    config: dhcp
+    section: '{{ dnsmasq_include_dhcp_pool.key }}'
+    value: dhcp
+  notify: 'Commit UCI dhcp changes'
+
+- name: '{{ dnsmasq_include_dhcp_pool.key }} - Set DHCP pool attributes'
+  ganto.openwrt.uci:
+    command: set
+    config: dhcp
+    section: '{{ dnsmasq_include_dhcp_pool.key }}'
+    option: '{{ item.key }}'
+    value: '{{ item.value | ganto.openwrt.uci_type }}'
+  loop: '{{ dnsmasq_include_dhcp_pool.value | dict2items }}'
+  loop_control:
+    label: '{{ (item.key + ": "
+                + (item.value | ganto.openwrt.uci_type | string))
+               | to_json }}'
+  notify: 'Commit UCI dhcp changes'

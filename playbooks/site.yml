@@ -14,5 +14,8 @@
     - name: network
       tags: openwrt.network
 
+    - name: dnsmasq
+      tags: openwrt.dnsmasq
+
     - name: system
       tags: openwrt.system

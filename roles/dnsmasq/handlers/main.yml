@@ -1,0 +1,9 @@
+---
+# Copyright (C) 2021 Reto Gantenbein <reto.gantenbein@linuxmonk.ch>
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+- name: Commit UCI dhcp changes
+  ganto.openwrt.uci:
+    commit: true
+  when: dnsmasq_dhcp_uci_commit | bool
+  register: dnsmasq_register_uci_dhcp_commit

@@ -20,4 +20,5 @@
   roles:
     - name: ganto.openwrt.opkg
     - name: ganto.openwrt.network
+    - name: ganto.openwrt.dnsmasq
     - name: ganto.openwrt.system

@@ -1,0 +1,138 @@
+---
+# Copyright (C) 2021 Reto Gantenbein <reto.gantenbein@linuxmonk.ch>
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+#
+# DHCP Configuration
+#
+# There are various options for DHCP servers available in OpenWRT. This
+# configuration will manage the default DHCP server provided by dnsmasq.
+
+# Enable DHCP server in dnsmasq. This should be set to `false` if you want to
+# use another DHCP server implementation as your main (IPv4) DHCP service
+# (e.g. odhcpd)
+dnsmasq_dhcp: true
+
+# YAML dictionary of the common DHCP options as they will be applied to the
+# host. For the full list of options see:
+#   https://openwrt.org/docs/guide-user/base-system/dhcp#common_options
+#
+dnsmasq_dhcp_options: '{{ dnsmasq_dhcp_default_options
+                          | combine(dnsmasq_dhcp_custom_options) }}'
+
+# YAML dictionary of the common DHCP option defaults as defined by OpenWRT.
+dnsmasq_dhcp_default_options:
+
+  # Force authoritative mode. This speeds up DHCP leasing in case this is the
+  # only DHCP server in the network.
+  authoritative: true
+
+  # Reject reverse lookups to private IP ranges where no corresponding entry
+  # exists in `/etc/hosts`.
+  boguspriv: true
+
+  # DNS domain handed out to DHCP clients.
+  domain: 'lan'
+
+  # Never to forward queries for plain names, without dots or domain parts, to
+  # upstream nameservers.
+  domainneeded: true
+
+  # Add the local domain part to names found in `/etc/hosts`.
+  expandhosts: true
+
+  # Do not forward requests that cannot be answered by public name servers.
+  filterwin2k: false
+
+  # Store DHCP leases in this file.
+  leasefile: '/tmp/dhcp.leases'
+
+  # Look up DNS entries for this domain from `/etc/hosts`.
+  local: '/lan/'
+
+  # Choose IP address to match the incoming interface if multiple addresses
+  # are assigned to a host name in `/etc/hosts`.
+  localise_queries: true
+
+  # Accept DNS queries only from hosts whose address is on a local subnet, ie a
+  # subnet for which an interface exists on the server.
+  localservice: true
+
+  # Disable caching of negative “no such domain” responses.
+  nonegcache: false
+
+  # Bind only configured interface addresses, instead of the wildcard address.
+  nonwildcard: true
+
+  # Read static lease entries from `/etc/ethers`.
+  readethers: true
+
+  # Allows upstream 127.0.0.0/8 responses, required for DNS based blacklist
+  # services, only takes effect if `rebind_protection` is enabled.
+  rebind_localhost: true
+
+  # Enables DNS rebind attack protection by discarding upstream RFC1918
+  # responses.
+  rebind_protection: true
+
+  # Specifies an alternative resolv file.
+  resolvfile: '/tmp/resolv.conf.auto'
+
+# YAML dictionary of user defined common DHCP options which can be used to
+# overwrite the default options.
+dnsmasq_dhcp_custom_options: {}
+
+# YAML dictionary of DHCP pool UCI options as they will be applied to the
+# host. Each item must have the pool name as key and the values define the
+# configuration options. For the full list of options see:
+#   https://openwrt.org/docs/guide-user/base-system/dhcp#dhcp_pools
+dnsmasq_dhcp_pool_options: '{{ dnsmasq_dhcp_pool_default_options
+                               | combine(dnsmasq_dhcp_pool_custom_options, recursive=true) }}'
+
+# YAML dictionary of the default DHCP pool options as defined by OpenWRT.
+dnsmasq_dhcp_pool_default_options:
+  lan:
+    # Specifies whether DHCPv6 server should be enabled (`server`), relayed
+    # (`relay`) or disabled (`disabled`).
+    dhcpv6: server
+
+    # Specifies the interface name associated with this DHCP address pool.
+    interface: lan
+
+    # Specifies the lease time of addresses handed out to clients, for example
+    # `12h` or `30m`.
+    leasetime: 12h
+
+    # Specifies the size of the address pool.
+    limit: 150
+
+    # Specifies whether Router Advertisements should be enabled (`server`),
+    # relayed (`relay`) or disabled (`disabled`).
+    ra: server
+
+    # Specifies the offset from the network address of the underlying interface
+    # to calculate the minimum address that may be leased to clients.
+    start: 100
+
+  wan:
+    # pecifies whether dnsmasq should ignore this pool
+    ignore: true
+    interface: wan
+
+# YAML dictionary of user defined DHCP pool options which can be used to
+# overwrite the default options.
+dnsmasq_dhcp_pool_custom_options: {}
+
+
+#
+# Generic role behavior
+#
+
+# Abort if there are uncommitted dhcp changes before running this role.
+dnsmasq_dhcp_abort_uncommitted: true
+
+# Commit UCI dhcp changes to persistency.
+dnsmasq_dhcp_uci_commit: true
+
+# Restart dnsmasq service after changes.
+dnsmasq_restart: true
