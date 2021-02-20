@@ -74,3 +74,6 @@ system_abort_uncommitted: true
 
 # Commit UCI system changes to persistency.
 system_uci_commit: true
+
+# Restart system service after changes.
+system_service_restart: true

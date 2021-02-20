@@ -113,3 +113,11 @@
                else ("restarted"
                      if ((system_register_uci_commit | default({})) is changed)
                      else "started") }}'
+
+- name: Restart system service
+  service:
+    name: system
+    state: restarted
+  when:
+    - (system_register_uci_commit | default({})) is changed
+    - system_service_restart | bool
