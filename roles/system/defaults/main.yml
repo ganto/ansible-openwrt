@@ -12,20 +12,30 @@ system_hostname: openwrt
 # Timezone of the system. Corresponds to the `zonename` UCI option.
 system_timezone: UTC
 
-# YAML dictionary that defines the UCI system options such as system logging
-# level and remote log server. For the full list of options see:
+# YAML dictionary of UCI system options such as system logging level and remote
+# log server as they will be applied to the host. For the full list of options
+# see:
 #   https://openwrt.org/docs/guide-user/base-system/system_configuration
 #
 system_options: '{{ system_default_options | combine(system_custom_options) }}'
 
-# YAML dictionary that defines the default UCI systems options.
+# YAML dictionary of the UCI systems option defaults as defined by OpenWRT.
 system_default_options:
+
+  # Maximum log level for kernel messages to be logged to the console.
   conloglevel: 8
+
+  # The minimum level for cron messages to be logged to syslog.
   cronloglevel: 5
+
+  # Size of the file based log buffer in KiB.
   log_size: 64
+
+  # Require authentication for local users to log in the system.
   ttylogin: false
 
-# YAML dictionary that defines the user defined UCI systems options.
+# YAML dictionary of user defined UCI systems options which can be used to
+# overwrite the default options.
 system_custom_options: {}
 
 #

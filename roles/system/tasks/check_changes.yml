@@ -13,4 +13,6 @@
 - name: Abort on uncommitted UCI system changes
   fail:
     msg: 'Please review and commit UCI changes before continue'
-  when: not system_register_uncommitted.result.committed
+  when:
+    - not system_register_uncommitted.result.committed
+    - system_abort_uncommitted | bool
