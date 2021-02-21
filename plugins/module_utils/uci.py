@@ -5,7 +5,7 @@
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
-from re import match
+from re import match, search
 
 from ansible.module_utils.common.process import get_bin_path
 
@@ -74,13 +74,57 @@ class UnifiedConfigurationInterface():
 
         return output
 
+    def commit(self, args=[]):
+        args.insert(0, 'commit')
+        self._exec(args)
+
     def delete(self, args):
         args.insert(0, 'delete')
         self._exec(args)
 
-    def commit(self, args=[]):
-        args.insert(0, 'commit')
-        self._exec(args)
+    @staticmethod
+    def dot_to_dict(elements):
+        '''
+        Parse the given dictionary that must correspond to the key/value format
+        of UCI elements and return a nicely formated dict. Elements of unnamed
+        sections will thereby converted to lists.
+        '''
+        output = {}
+        for key, value in elements.items():
+            config, section = key.split('.')[:2]
+
+            if config not in output.keys():
+                output.update({config: {}})
+
+            section_format = {}
+            if section[0] == '@':
+                section_format = []
+                section_index = search(r'\[(\d+)\]', section).group()
+                section_index = int(section_index.strip(r'\[\]\\'))
+
+            if len(key.split('.')) == 2:
+                section_type = value
+
+                if section_type not in output[config].keys():
+                    output[config].update({section_type: section_format})
+
+                if isinstance(section_format, dict):
+                    output[config][section_type].update({section: {}})
+
+            if len(key.split('.')) == 3:
+                option = key.split('.')[2]
+
+                if isinstance(section_format, dict):
+                    output[config][section_type][section].update(
+                        {option: value})
+                if isinstance(section_format, list):
+                    if len(output[config][section_type]) == section_index:
+                        output[config][section_type].append({option: value})
+                    else:
+                        output[config][section_type][section_index].update(
+                            {option: value})
+
+        return output
 
     def get(self, args=[]):
         args.insert(0, 'get')

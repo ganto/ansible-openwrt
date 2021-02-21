@@ -21,6 +21,11 @@ options:
     description:
       - Reduce facts gathering to given config (e.g. network, system).
     type: str
+  dot_notation:
+    description:
+      - Returns facts in the dot-formatted C(uci show) output format.
+    type: bool
+    default: false
   section:
     description:
       - Reduce facts gathering to given config section.
@@ -80,7 +85,8 @@ from ansible_collections.ganto.openwrt.plugins.module_utils.uci import UnifiedCo
 def main():
     module_args = dict(
         config=dict(type='str'),
-        section=dict(type='str')
+        section=dict(type='str'),
+        dot_notation=dict(type='bool', default=False)
     )
 
     module = AnsibleModule(
@@ -106,7 +112,10 @@ def main():
 
     uci = UnifiedConfigurationInterface(module)
     try:
-        results['ansible_facts'].update(uci=uci.show(args))
+        facts = uci.show(args)
+        if not module.params['dot_notation']:
+            facts = uci.dot_to_dict(facts)
+        results['ansible_facts'].update(uci=facts)
 
     except OSError as e:
         module.fail_json(msg="%s: %s" % (e.filename, e.strerror))
