@@ -19,7 +19,7 @@
     section: globals
     value: globals
   when: ((network_globals_config | length > 0) and
-         ('network.globals' not in ansible_facts.uci.keys())) or
+         ('globals' not in ansible_facts.uci.network.keys())) or
         (network_globals_config | length == 0)
   notify: 'Commit UCI network changes'
 
