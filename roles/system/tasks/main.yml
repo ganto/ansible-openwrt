@@ -104,7 +104,16 @@
 - name: Trigger handlers
   meta: flush_handlers
 
-- name: Restart sysntpd
+- name: Restart system service
+  service:
+    name: system
+    enabled: true
+    state: restarted
+  when:
+    - (system_register_uci_commit | default({})) is changed
+    - system_service_restart | bool
+
+- name: Restart sysntpd service
   service:
     name: sysntpd
     enabled: '{{ true if (system_ntp_enabled | bool) else false }}'
@@ -114,10 +123,11 @@
                      if ((system_register_uci_commit | default({})) is changed)
                      else "started") }}'
 
-- name: Restart system service
+- name: Restart log service
   service:
-    name: system
+    name: log
+    enabled: true
     state: restarted
   when:
     - (system_register_uci_commit | default({})) is changed
-    - system_service_restart | bool
+    - system_log_restart | bool
