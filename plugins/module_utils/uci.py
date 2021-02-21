@@ -74,12 +74,12 @@ class UnifiedConfigurationInterface():
 
         return output
 
-    def delete(self, args):
-        args.insert(0, 'delete')
-        self._exec(args)
-
     def commit(self, args=[]):
         args.insert(0, 'commit')
+        self._exec(args)
+
+    def delete(self, args):
+        args.insert(0, 'delete')
         self._exec(args)
 
     def get(self, args=[]):
