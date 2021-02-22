@@ -58,6 +58,13 @@
     index_var: dnsmasq_include_srv_record_index
     loop_var: dnsmasq_include_srv_record
 
+- name: Include tasks to configure DNS CNAME record
+  include_tasks: cname_record.yml
+  loop: '{{ dnsmasq_cname_records }}'
+  loop_control:
+    index_var: dnsmasq_include_cname_record_index
+    loop_var: dnsmasq_include_cname_record
+
 - name: Trigger handlers
   meta: flush_handlers
 

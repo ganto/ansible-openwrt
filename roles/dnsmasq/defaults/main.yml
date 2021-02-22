@@ -198,6 +198,22 @@ dnsmasq_host_records: []
 #
 dnsmasq_srv_records: []
 
+# List of YAML dictionaries that define DNS CNAME records. Each list item
+# defines a CNAME record and must define the following configuration keys:
+#
+#   cname   Record name
+#   target  Host name of the target
+#
+# For more information see: https://en.wikipedia.org/wiki/CNAME_record
+#
+# Example:
+#
+#   dnsmasq_cname_records:
+#     - cname: 'ftp.example.com'
+#       target: 'www.example.com'
+#
+dnsmasq_cname_records: []
+
 #
 # Generic role behavior
 #

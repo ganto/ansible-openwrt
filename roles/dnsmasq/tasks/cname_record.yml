@@ -1,0 +1,25 @@
+---
+# Copyright (C) 2021 Reto Gantenbein <reto.gantenbein@linuxmonk.ch>
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+- name: '{{ dnsmasq_include_cname_record.cname }} - Add DNS CNAME record'
+  ganto.openwrt.uci:
+    command: add
+    config: dhcp
+    section: cname
+  when: (ansible_facts.uci.dhcp.cname | default([])) | length <= dnsmasq_include_cname_record_index
+
+- name: '{{ dnsmasq_include_cname_record.cname }} - Set DNS CNAME record attributes'
+  ganto.openwrt.uci:
+    command: set
+    config: dhcp
+    section: '@cname[{{ dnsmasq_include_cname_record_index }}]'
+    option: '{{ item.key }}'
+    value: '{{ item.value | ganto.openwrt.uci_type }}'
+  when: item.key in ['cname', 'target']
+  loop: '{{ dnsmasq_include_cname_record | dict2items }}'
+  loop_control:
+    label: '{{ (item.key + ": "
+                + (item.value | ganto.openwrt.uci_type | string))
+               | to_json }}'
+  notify: 'Commit UCI dhcp changes'
