@@ -158,6 +158,22 @@ dnsmasq_dhcp_pool_custom_options: {}
 #
 dnsmasq_dhcp_hosts: []
 
+# List of YAML dictionaries that define DNS host (A and AAAA) and reverse (PTR)
+# records. Each list item defines a host entry and must define the following
+# configuration keys:
+#
+#   ip      IPv4 or IPv6 address
+#   name    Domain name
+#
+# Example:
+#
+#   dnsmasq_host_records:
+#     - name: 'mylaptop'
+#       ip: '192.168.1.23'
+#     - name: 'mylaptop'
+#       ip: 'fdce::23'
+#
+dnsmasq_host_records: []
 
 #
 # Generic role behavior

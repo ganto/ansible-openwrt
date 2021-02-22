@@ -1,0 +1,25 @@
+---
+# Copyright (C) 2021 Reto Gantenbein <reto.gantenbein@linuxmonk.ch>
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+- name: '{{ dnsmasq_include_host_record.name }} - Add DNS host record'
+  ganto.openwrt.uci:
+    command: add
+    config: dhcp
+    section: domain
+  when: (ansible_facts.uci.dhcp.domain | default([])) | length <= dnsmasq_include_host_record_index
+
+- name: '{{ dnsmasq_include_host_record.name }} - Set DNS host record attributes'
+  ganto.openwrt.uci:
+    command: set
+    config: dhcp
+    section: '@domain[{{ dnsmasq_include_host_record_index }}]'
+    option: '{{ item.key }}'
+    value: '{{ item.value | ganto.openwrt.uci_type }}'
+  when: item.key in ['name', 'ip']
+  loop: '{{ dnsmasq_include_host_record | dict2items }}'
+  loop_control:
+    label: '{{ (item.key + ": "
+                + (item.value | ganto.openwrt.uci_type | string))
+               | to_json }}'
+  notify: 'Commit UCI dhcp changes'

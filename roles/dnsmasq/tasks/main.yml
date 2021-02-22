@@ -44,6 +44,13 @@
     index_var: dnsmasq_include_dhcp_host_index
     loop_var: dnsmasq_include_dhcp_host
 
+- name: Include tasks to configure DNS host record
+  include_tasks: host_record.yml
+  loop: '{{ dnsmasq_host_records }}'
+  loop_control:
+    index_var: dnsmasq_include_host_record_index
+    loop_var: dnsmasq_include_host_record
+
 - name: Trigger handlers
   meta: flush_handlers
 
