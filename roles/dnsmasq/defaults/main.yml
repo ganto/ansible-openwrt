@@ -175,6 +175,29 @@ dnsmasq_dhcp_hosts: []
 #
 dnsmasq_host_records: []
 
+# List of YAML dictionaries that define DNS service (SRV) records. Each list
+# item defines a SRV record and must define the following configuration keys:
+#
+#   srv     Record name, typically in the format `_service._proto.name`
+#   target  Host name of the machine providing the service
+#   port    Network port number
+#   class   The priority of the target host, lower value means more preferred
+#   weight  A relative weight for records with the same priority, higher value
+#           means higher chance of getting picked
+#
+# For more information see: https://en.wikipedia.org/wiki/SRV_record
+#
+# Example:
+#
+#   dnsmasq_srv_records:
+#     - srv: '_sip._udp.mydomain.com'
+#       target: 'pbx.mydomain.com'
+#       port: 5600
+#       class: 0
+#       weight: 10
+#
+dnsmasq_srv_records: []
+
 #
 # Generic role behavior
 #

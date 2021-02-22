@@ -51,6 +51,13 @@
     index_var: dnsmasq_include_host_record_index
     loop_var: dnsmasq_include_host_record
 
+- name: Include tasks to configure DNS SRV record
+  include_tasks: srv_record.yml
+  loop: '{{ dnsmasq_srv_records }}'
+  loop_control:
+    index_var: dnsmasq_include_srv_record_index
+    loop_var: dnsmasq_include_srv_record
+
 - name: Trigger handlers
   meta: flush_handlers
 
