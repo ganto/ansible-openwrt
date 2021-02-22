@@ -6,6 +6,11 @@
   include_tasks: check_changes.yml
   when: system_abort_uncommitted|bool
 
+- name: Install packages
+  package:
+    name: '{{ dnsmasq_packages }}'
+    state: present
+
 - name: Gather UCI dhcp facts
   check_mode: no
   ganto.openwrt.uci_facts:

@@ -2,6 +2,18 @@
 # Copyright (C) 2021 Reto Gantenbein <reto.gantenbein@linuxmonk.ch>
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+# List of packages that will be installed when running this role.
+dnsmasq_packages: '{{ dnsmasq_default_packages
+                      | combine(dnsmasq_custom_packages) }}'
+
+# List of default packages required by this role.
+dnsmasq_default_packages:
+  - dnsmasq
+
+# List of user defined packages required by this role.
+dnsmasq_custom_packages: []
+
+
 #
 # DHCP Configuration
 #
