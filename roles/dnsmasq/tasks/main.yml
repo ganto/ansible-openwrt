@@ -32,6 +32,13 @@
     label: '{{ dnsmasq_include_dhcp_pool.key }}'
     loop_var: dnsmasq_include_dhcp_pool
 
+- name: Include tasks to configure static DHCP lease
+  include_tasks: dhcp_host.yml
+  loop: '{{ dnsmasq_dhcp_hosts }}'
+  loop_control:
+    index_var: dnsmasq_include_dhcp_host_index
+    loop_var: dnsmasq_include_dhcp_host
+
 - name: Trigger handlers
   meta: flush_handlers
 

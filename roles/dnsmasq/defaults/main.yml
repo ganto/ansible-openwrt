@@ -125,6 +125,29 @@ dnsmasq_dhcp_pool_custom_options: {}
 
 
 #
+# Custom dnsmasq DHCP/DNS entries
+#
+
+# List of YAML dictionaries that define static DHCP leases for hosts. Each list
+# item defines an individual host entry and accepts the configuration keys
+# defined at:
+#   https://openwrt.org/docs/guide-user/base-system/dhcp#static_leases
+#
+# Example:
+#
+#   dnsmasq_dhcp_hosts:
+#     - name: 'mylaptop'
+#       mac:
+#         - '11:22:33:44:55:66'
+#         - 'aa:bb:cc:dd:ee:ff'
+#       ip: '192.168.1.23'
+#       duid: '000100004fd454041c6f65d26f43'
+#       hostid: 23
+#
+dnsmasq_dhcp_hosts: []
+
+
+#
 # Generic role behavior
 #
 
