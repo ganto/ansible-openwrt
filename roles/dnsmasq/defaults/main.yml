@@ -39,10 +39,6 @@ dnsmasq_dhcp_default_options:
   # only DHCP server in the network.
   authoritative: true
 
-  # Reject reverse lookups to private IP ranges where no corresponding entry
-  # exists in `/etc/hosts`.
-  boguspriv: true
-
   # DNS domain handed out to DHCP clients.
   domain: 'lan'
 
@@ -52,9 +48,6 @@ dnsmasq_dhcp_default_options:
 
   # Add the local domain part to names found in `/etc/hosts`.
   expandhosts: true
-
-  # Do not forward requests that cannot be answered by public name servers.
-  filterwin2k: false
 
   # Store DHCP leases in this file.
   leasefile: '/tmp/dhcp.leases'
@@ -69,12 +62,6 @@ dnsmasq_dhcp_default_options:
   # Accept DNS queries only from hosts whose address is on a local subnet, ie a
   # subnet for which an interface exists on the server.
   localservice: true
-
-  # Disable caching of negative “no such domain” responses.
-  nonegcache: false
-
-  # Bind only configured interface addresses, instead of the wildcard address.
-  nonwildcard: true
 
   # Read static lease entries from `/etc/ethers`.
   readethers: true
