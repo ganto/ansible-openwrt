@@ -1,0 +1,86 @@
+---
+# Copyright (C) 2021 Reto Gantenbein <reto.gantenbein@linuxmonk.ch>
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+- name: Include tasks to check for uncommitted system changes
+  include_tasks: check_changes.yml
+  when: system_abort_uncommitted|bool
+
+- name: Install packages
+  package:
+    name: '{{ dnsmasq_packages }}'
+    state: present
+
+- name: Gather UCI dhcp facts
+  check_mode: no
+  ganto.openwrt.uci_facts:
+    config: dhcp
+
+- name: Configure UCI dhcp options
+  ganto.openwrt.uci:
+    command: set
+    config: dhcp
+    section: '@dnsmasq[0]'
+    option: '{{ item.key }}'
+    value: '{{ item.value | ganto.openwrt.uci_type }}'
+  loop: '{{ dnsmasq_dhcp_options
+            | combine({"port": 53 if (dnsmasq_dns | bool) else 0})
+            | dict2items }}'
+  loop_control:
+    label: '{{ (item.key + ": "
+                + (item.value | ganto.openwrt.uci_type | string))
+               | to_json }}'
+  notify: 'Commit UCI dhcp changes'
+
+- name: Include tasks to configure DHCP pool
+  include_tasks: dhcp_pool.yml
+  loop: '{{ dnsmasq_dhcp_pool_options | dict2items }}'
+  loop_control:
+    label: '{{ dnsmasq_include_dhcp_pool.key }}'
+    loop_var: dnsmasq_include_dhcp_pool
+
+- name: Include tasks to configure static DHCP lease
+  include_tasks: dhcp_host.yml
+  loop: '{{ dnsmasq_dhcp_hosts }}'
+  loop_control:
+    index_var: dnsmasq_include_dhcp_host_index
+    loop_var: dnsmasq_include_dhcp_host
+
+- name: Include tasks to configure DNS host record
+  include_tasks: host_record.yml
+  loop: '{{ dnsmasq_host_records }}'
+  loop_control:
+    index_var: dnsmasq_include_host_record_index
+    loop_var: dnsmasq_include_host_record
+
+- name: Include tasks to configure DNS SRV record
+  include_tasks: srv_record.yml
+  loop: '{{ dnsmasq_srv_records }}'
+  loop_control:
+    index_var: dnsmasq_include_srv_record_index
+    loop_var: dnsmasq_include_srv_record
+
+- name: Include tasks to configure DNS CNAME record
+  include_tasks: cname_record.yml
+  loop: '{{ dnsmasq_cname_records }}'
+  loop_control:
+    index_var: dnsmasq_include_cname_record_index
+    loop_var: dnsmasq_include_cname_record
+
+- name: Include tasks to configure DNS MX record
+  include_tasks: mx_record.yml
+  loop: '{{ dnsmasq_mx_records }}'
+  loop_control:
+    index_var: dnsmasq_include_mx_record_index
+    loop_var: dnsmasq_include_mx_record
+
+- name: Trigger handlers
+  meta: flush_handlers
+
+- name: Restart dnsmasq
+  service:
+    name: dnsmasq
+    state: restarted
+  when:
+    - dnsmasq_restart | bool
+    - (dnsmasq_register_uci_dhcp_commit | default({})) is changed

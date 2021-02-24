@@ -1,0 +1,25 @@
+---
+# Copyright (C) 2021 Reto Gantenbein <reto.gantenbein@linuxmonk.ch>
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+- name: '{{ dnsmasq_include_mx_record.relay }} - Add DNS MX record'
+  ganto.openwrt.uci:
+    command: add
+    config: dhcp
+    section: mxhost
+  when: (ansible_facts.uci.dhcp.mxhost | default([])) | length <= dnsmasq_include_mx_record_index
+
+- name: '{{ dnsmasq_include_mx_record.relay }} - Set DNS MX record attributes'
+  ganto.openwrt.uci:
+    command: set
+    config: dhcp
+    section: '@mxhost[{{ dnsmasq_include_mx_record_index }}]'
+    option: '{{ item.key }}'
+    value: '{{ item.value | ganto.openwrt.uci_type }}'
+  when: item.key in ['domain', 'relay', 'pref']
+  loop: '{{ dnsmasq_include_mx_record | dict2items }}'
+  loop_control:
+    label: '{{ (item.key + ": "
+                + (item.value | ganto.openwrt.uci_type | string))
+               | to_json }}'
+  notify: 'Commit UCI dhcp changes'
