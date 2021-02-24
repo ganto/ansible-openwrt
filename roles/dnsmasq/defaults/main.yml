@@ -135,6 +135,10 @@ dnsmasq_dhcp_pool_default_options:
 # overwrite the default options.
 dnsmasq_dhcp_pool_custom_options: {}
 
+# Enable dnsmasq DNS resolver. In TurrisOS the Knot DNS resolver is used
+# instead of dnsmasq therefore therefore it's disabled there by default.
+dnsmasq_dns: '{{ false if (ansible_distribution == "TurrisOS") else true }}'
+
 
 #
 # Custom dnsmasq DHCP/DNS entries

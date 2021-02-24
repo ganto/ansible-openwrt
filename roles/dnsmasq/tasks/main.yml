@@ -23,7 +23,9 @@
     section: '@dnsmasq[0]'
     option: '{{ item.key }}'
     value: '{{ item.value | ganto.openwrt.uci_type }}'
-  loop: '{{ dnsmasq_dhcp_options | dict2items }}'
+  loop: '{{ dnsmasq_dhcp_options
+            | combine({"port": 53 if (dnsmasq_dns | bool) else 0})
+            | dict2items }}'
   loop_control:
     label: '{{ (item.key + ": "
                 + (item.value | ganto.openwrt.uci_type | string))
