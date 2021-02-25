@@ -5,7 +5,7 @@
 - name: '{{ dnsmasq_include_dhcp_host.duid
             | default(dnsmasq_include_dhcp_host.mac[0]) }} - Add DHCP host'
   ganto.openwrt.uci:
-    command: set
+    command: add
     config: dhcp
     section: host
   when: (ansible_facts.uci.dhcp.host | default([])) | length <= dnsmasq_include_dhcp_host_index
