@@ -4,7 +4,7 @@
 
 - name: Include tasks to check for uncommitted system changes
   include_tasks: check_changes.yml
-  when: system_abort_uncommitted|bool
+  when: dnsmasq_abort_uncommitted|bool
 
 - name: Install packages
   package:
