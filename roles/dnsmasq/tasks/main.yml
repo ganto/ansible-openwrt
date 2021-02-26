@@ -90,7 +90,12 @@
 - name: Restart dnsmasq
   service:
     name: dnsmasq
-    state: restarted
-  when:
-    - dnsmasq_restart | bool
-    - (dnsmasq_register_uci_dhcp_commit | default({})) is changed
+    enabled: '{{ true
+                 if ((dnsmasq_dhcp | bool) or (dnsmasq_dns | bool))
+                 else false }}'
+    state: '{{ "stopped"
+               if (not (dnsmasq_dhcp | bool) and not (dnsmasq_dns | bool))
+               else ("restarted"
+                     if (((dnsmasq_register_uci_dhcp_commit | default({})) is changed)
+                         and (dnsmasq_restart | bool))
+                     else "started") }}'
