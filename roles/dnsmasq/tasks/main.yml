@@ -16,6 +16,16 @@
   ganto.openwrt.uci_facts:
     config: dhcp
 
+- name: Enable DNS port
+  ganto.openwrt.uci:
+    command: delete
+    config: dhcp
+    section: '@dnsmasq[0]'
+    option: port
+  when:
+    - (ansible_facts.uci.dhcp.dnsmasq[0].port | default(53)) == 0
+    - dnsmasq_dns | bool
+
 - name: Configure UCI dhcp options
   ganto.openwrt.uci:
     command: set
