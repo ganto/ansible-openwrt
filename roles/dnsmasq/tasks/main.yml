@@ -4,7 +4,7 @@
 
 - name: Include tasks to check for uncommitted system changes
   include_tasks: check_changes.yml
-  when: system_abort_uncommitted|bool
+  when: dnsmasq_abort_uncommitted|bool
 
 - name: Install packages
   package:
@@ -16,6 +16,16 @@
   ganto.openwrt.uci_facts:
     config: dhcp
 
+- name: Enable DNS port
+  ganto.openwrt.uci:
+    command: delete
+    config: dhcp
+    section: '@dnsmasq[0]'
+    option: port
+  when:
+    - (ansible_facts.uci.dhcp.dnsmasq[0].port | default(53)) == 0
+    - dnsmasq_dns | bool
+
 - name: Configure UCI dhcp options
   ganto.openwrt.uci:
     command: set
@@ -24,7 +34,7 @@
     option: '{{ item.key }}'
     value: '{{ item.value | ganto.openwrt.uci_type }}'
   loop: '{{ dnsmasq_dhcp_options
-            | combine({"port": 53 if (dnsmasq_dns | bool) else 0})
+            | combine({} if (dnsmasq_dns | bool) else {"port": 0})
             | dict2items }}'
   loop_control:
     label: '{{ (item.key + ": "
@@ -80,7 +90,12 @@
 - name: Restart dnsmasq
   service:
     name: dnsmasq
-    state: restarted
-  when:
-    - dnsmasq_restart | bool
-    - (dnsmasq_register_uci_dhcp_commit | default({})) is changed
+    enabled: '{{ true
+                 if ((dnsmasq_dhcp | bool) or (dnsmasq_dns | bool))
+                 else false }}'
+    state: '{{ "stopped"
+               if (not (dnsmasq_dhcp | bool) and not (dnsmasq_dns | bool))
+               else ("restarted"
+                     if (((dnsmasq_register_uci_dhcp_commit | default({})) is changed)
+                         and (dnsmasq_restart | bool))
+                     else "started") }}'

@@ -22,12 +22,6 @@ system_options: '{{ system_default_options | combine(system_custom_options) }}'
 # YAML dictionary of the UCI systems option defaults as defined by OpenWRT.
 system_default_options:
 
-  # Maximum log level for kernel messages to be logged to the console.
-  conloglevel: 8
-
-  # The minimum level for cron messages to be logged to syslog.
-  cronloglevel: 5
-
   # Size of the file based log buffer in KiB.
   log_size: 64
 

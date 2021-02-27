@@ -27,7 +27,7 @@
     lua -e
     "require('luci.sys.zoneinfo')
     for _, zone in ipairs(luci.sys.zoneinfo.TZ) do
-      if zone[1] == '{{ system_zonename }}' then
+      if zone[1] == '{{ system_zonename | regex_replace('_', ' ') }}' then
         print(zone[2])
       end
     end"
