@@ -12,3 +12,6 @@
 
     - name: Install Python 3
       raw: opkg install python3  # noqa no-changed-when
+
+    - name: Disable dnsmasq capability check
+      raw: sed -i 's/--user=dnsmasq/--user=root/' /etc/init.d/dnsmasq  # noqa no-changed-when
