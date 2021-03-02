@@ -1,0 +1,164 @@
+---
+# Copyright (C) 2021 Reto Gantenbein <reto.gantenbein@linuxmonk.ch>
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+- name: Verify
+  hosts: all
+
+  tasks:
+    - name: Query UCI facts
+      ganto.openwrt.uci_facts: {}
+
+    - name: Print Ansible facts
+      debug:
+        var: ansible_facts
+        verbosity: 1
+
+    - name: Query running processes
+      command: ps -w
+      changed_when: false
+      failed_when: false
+      register: verify_register_ps
+
+    - name: Print process list
+      debug:
+        var: verify_register_ps.stdout_lines
+
+    - name: Query network ports
+      command: netstat -naptue
+      changed_when: false
+      failed_when: false
+      register: verify_register_netstat
+
+    - name: Print network ports
+      debug:
+        var: verify_register_netstat.stdout_lines
+
+    - name: Read system logs
+      shell: 'set -o pipefail; logread | grep -v user.info'
+      changed_when: false
+      failed_when: false
+      register: verify_register_logread
+
+    - name: Print system logs
+      debug:
+        var: verify_register_logread.stdout_lines
+
+    - name: Read dnsmasq configuration
+      shell: 'egrep -v "^$|^#" /etc/dnsmasq.conf /var/etc/dnsmasq.conf.*'  # noqa risky-shell-pipe
+      changed_when: false
+      failed_when: false
+      register: verify_register_dnsmasq
+
+    - name: Print dnsmasq configuration
+      debug:
+        var: verify_register_dnsmasq.stdout_lines
+
+    - name: Verify hostname
+      assert:
+        quiet: true
+        # Unfortuantely we cannot test the real hostname as we're not allowed to set it in the container
+        that: ansible_facts.uci.system.system[0].hostname == 'openwrt'
+
+    - name: Verify timezone
+      assert:
+        quiet: true
+        # We set the zonename to Americ/New_York which is Eastern Standard Time (EST)
+        that: ansible_facts.date_time.tz == 'EST'
+
+    - name: Verify NTP peers
+      assert:
+        quiet: true
+        # TODO: There is still a quoting issue when parsing UCI list facts
+        that: ("'1.us.pool.ntp.org'" in ansible_facts.uci.system.timeserver.ntp.server)
+
+    - name: Verify dnsmasq DNS domain
+      assert:
+        quiet: true
+        that: ansible_facts.uci.dhcp.dnsmasq[0].domain == 'example.test'
+
+    - name: Verify that DHCP is disabled for 'wan' interface
+      assert:
+        quiet: true
+        that: ansible_facts.uci.dhcp.dhcp.wan.ignore == 1
+
+    - name: Ensure a service is listening on port 53
+      wait_for:
+        connect_timeout: 2
+        port: 53
+        timeout: 5
+
+    - name: Query DNS host records
+      # Somehow I couldn't make the Ansible 'dig' lookup filter work so I'm using the 'dig' cli tool
+      command: 'dig +short {{ item }} @localhost'
+      changed_when: false
+      loop:
+        - host02
+        - host02.example.test
+        - example.test
+      register: verify_register_host_records
+
+    - name: Verify DNS host records
+      assert:
+        quiet: true
+        that: item.0 == item.1
+      loop: '{{ (verify_register_host_records.results | map(attribute="stdout") | list)
+                | zip(verify_task_results) | list }}'
+      vars:
+        verify_task_results:
+          - 192.168.1.20
+          - 192.168.1.20
+          - 10.212.2.12
+
+    - name: Query DNS SRV records
+      command: 'dig +short {{ item }} SRV @localhost'
+      changed_when: false
+      loop:
+        - _ldap._tcp.example.test
+      register: verify_register_srv_records
+
+    - name: Verify DNS host records
+      assert:
+        quiet: true
+        that: item.0 == item.1
+      loop: '{{ (verify_register_srv_records.results | map(attribute="stdout") | list)
+                | zip(verify_task_results) | list }}'
+      vars:
+        verify_task_results:
+          - '0 100 389 ldap.example.test.'
+
+    - name: Query DNS CNAME records
+      changed_when: false
+      command: 'dig +short {{ item }} CNAME @localhost'
+      loop:
+        - www.example.test
+        - mail.example.test
+      register: verify_register_cname_records
+
+    - name: Verify DNS CNAME records
+      assert:
+        quiet: true
+        that: item.0 == item.1
+      loop: '{{ (verify_register_cname_records.results | map(attribute="stdout") | list)
+                | zip(verify_task_results) | list }}'
+      vars:
+        verify_task_results:
+          - example.test.
+          - example.test.
+
+    - name: Query DNS MX records
+      changed_when: false
+      command: 'dig +short {{ item }} MX @localhost'
+      loop:
+        - example.test
+      register: verify_register_mx_records
+
+    - name: Verify DNS MX records
+      assert:
+        quiet: true
+        that: item.0 == item.1
+      loop: '{{ (verify_register_mx_records.results | map(attribute="stdout") | list)
+                | zip(verify_task_results) | list }}'
+      vars:
+        verify_task_results:
+          - '10 mail.example.test.'
