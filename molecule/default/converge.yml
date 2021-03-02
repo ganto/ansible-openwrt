@@ -17,6 +17,60 @@
       wan:
         ipv6: 0
 
+    opkg_install_packages:
+      # Required for DNS testing
+      - bind-tools
+
+    #
+    # Set some custom configuration that can be verified
+    #
+    system_zonename: America/New_York
+    system_ntp_servers:
+      - 0.us.pool.ntp.org
+      - 1.us.pool.ntp.org
+      - 2.us.pool.ntp.org
+      - 3.us.pool.ntp.org
+
+    dnsmasq_dhcp_custom_options:
+      domain: example.test
+
+    dnsmasq_dhcp_hosts:
+      # Unfortunately host names of static DHCP leases won't be served by
+      # dnsmasq via DNS if the lease is not active
+      - name: host01
+        mac:
+          - 11:22:33:aa:bb:cc
+          - 44:55:66:dd:ee:ff
+        ip: 192.168.1.200
+
+    dnsmasq_host_records:
+      - name: host02
+        ip: 192.168.1.20
+      - name: example.test
+        ip: 10.212.2.12
+      # Unfortunately AAAA records won't be served by dnsmasq if IPv6 is not
+      # working in the container
+      - name: host03
+        ip: fd98:1152:26f9::3
+
+    dnsmasq_srv_records:
+      - srv: _ldap._tcp.example.test
+        target: ldap.example.test
+        port: 389
+        class: 0
+        weight: 100
+
+    dnsmasq_cname_records:
+      - cname: www.example.test
+        target: example.test
+      - cname: mail.example.test
+        target: example.test
+
+    dnsmasq_mx_records:
+      - domain: example.test
+        relay: mail.example.test
+        pref: 10
+
   roles:
     - name: ganto.openwrt.opkg
     - name: ganto.openwrt.network

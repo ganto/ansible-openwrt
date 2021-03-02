@@ -6,7 +6,7 @@ driver:
   name: podman
 platforms:
   - name: instance
-    image: "openwrtorg/rootfs:x86_64-19.07.6"
+    image: "openwrtorg/rootfs:${MOLECULE_OPENWRT_RELEASE:-19.07.7}"
     command: ${MOLECULE_DOCKER_COMMAND:-""}
     pre_build_image: True
 provisioner:
