@@ -17,5 +17,8 @@
     - name: dnsmasq
       tags: openwrt.dnsmasq
 
+    - name: isc_dhcpd
+      tags: openwrt.isc_dhcpd
+
     - name: system
       tags: openwrt.system
