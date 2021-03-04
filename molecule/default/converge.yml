@@ -71,8 +71,15 @@
         relay: mail.example.test
         pref: 10
 
+    isc_dhcpd_protocols:
+      - 'DHCPv4'
+
+    isc_dhcpd_domain_name: 'example.test'
+    isc_dhcpd_domain_search: 'example.test'
+
   roles:
     - name: ganto.openwrt.opkg
     - name: ganto.openwrt.network
     - name: ganto.openwrt.dnsmasq
+    - name: ganto.openwrt.isc_dhcpd
     - name: ganto.openwrt.system
