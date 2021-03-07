@@ -46,6 +46,20 @@
     label: '{{ network_include_interface.key }}'
     loop_var: network_include_interface
 
+- name: Include tasks to configure static IPv4 routes
+  include_tasks: static_route.yml
+  loop: '{{ network_ipv4_routes }}'
+  loop_control:
+    index_var: network_include_route_index
+    loop_var: network_include_route
+
+- name: Include tasks to configure static IPv6 routes
+  include_tasks: static_route.yml
+  loop: '{{ network_ipv6_routes }}'
+  loop_control:
+    index_var: network_include_route_index
+    loop_var: network_include_route
+
 - name: Trigger handlers
   meta: flush_handlers
 
