@@ -1,0 +1,24 @@
+---
+# Copyright (C) 2021 Reto Gantenbein <reto.gantenbein@linuxmonk.ch>
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+- name: '{{ network_include_route.target }} - Add static route'
+  ganto.openwrt.uci:
+    command: add
+    config: network
+    section: route
+  when: (ansible_facts.uci.network.route | default([])) | length <= network_include_route_index
+
+- name: '{{ network_include_route.target }} - Set static route attributes'
+  ganto.openwrt.uci:
+    command: set
+    config: network
+    section: '@route[{{ network_include_route_index }}]'
+    option: '{{ item.key }}'
+    value: '{{ item.value | ganto.openwrt.uci_type }}'
+  loop: '{{ network_include_route | dict2items }}'
+  loop_control:
+    label: '{{ (item.key + ": "
+                + (item.value | ganto.openwrt.uci_type | string))
+               | to_json }}'
+  notify: 'Commit UCI network changes'

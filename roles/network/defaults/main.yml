@@ -94,6 +94,37 @@ network_interfaces: {}
 network_combined_interfaces: '{{ lookup("template", "lookup/network_combined_interfaces.j2", convert_data=false) | from_yaml }}'
 
 #
+# Static route configuration
+#
+
+# List of static IPv4 route definitions. Each list item is a YAML dictionary of
+# a route configuration. For the full list of options see:
+#   https://openwrt.org/docs/guide-user/network/routes_configuration#options_for_ipv4_routes
+#
+# Example:
+#
+#   network_ipv4_routes:
+#     - interface: 'lan'
+#       target: '172.16.123.0'
+#       netmask '255.255.255.0'
+#       gateway '172.16.123.100'
+#
+network_ipv4_routes: []
+
+# List of static IPv6 route definitions. Each list item is a YAML dictionary of
+# a route configuration. For the full list of options see:
+#   https://openwrt.org/docs/guide-user/network/routes_configuration#options_for_ipv6_routes
+#
+# Example:
+#
+#   network_ipv6_routes:
+#     - interface: 'lan'
+#       target: '2001:0DB8:100:F00:BA3::1/64'
+#       gateway '2001:0DB8:99::1'
+#
+network_ipv6_routes: []
+
+#
 # Generic role behavior
 #
 
