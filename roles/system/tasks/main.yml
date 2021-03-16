@@ -110,7 +110,7 @@
     enabled: true
     state: restarted
   when:
-    - (system_register_uci_commit | default({})) is changed
+    - (system_register_uci_commit | default({})) is changed  # noqa no-handler
     - system_service_restart | bool
 
 - name: Restart sysntpd service
@@ -129,5 +129,5 @@
     enabled: true
     state: restarted
   when:
-    - (system_register_uci_commit | default({})) is changed
+    - (system_register_uci_commit | default({})) is changed  # noqa no-handler
     - system_log_restart | bool

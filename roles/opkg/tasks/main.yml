@@ -45,7 +45,7 @@
   command: opkg update
   when: (opkg_register_distfeeds is changed
          or opkg_register_customfeeds is changed
-         or opkg_update_feeds)
+         or opkg_update_feeds)  # noqa no-handler
 
 - name: Install packages
   package:

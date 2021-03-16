@@ -79,4 +79,4 @@
     port: '{{ ansible_port | default(22) }}'
     search_regex: 'SSH-2.0'
     timeout: 30
-  when: network_register_restart is changed
+  when: network_register_restart is changed  # noqa no-handler
