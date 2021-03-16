@@ -1,0 +1,122 @@
+{# Copyright (C) 2020 CipherMail B.V. <https://www.ciphermail.com/>
+ # Copyright (C) 2020 DebOps <https://debops.org/>
+ # SPDX-License-Identifier: GPL-3.0-or-later
+ #}
+{% from 'macro_class.j2' import print_class %}
+{% from 'macro_group.j2' import print_group %}
+{% from 'macro_host.j2' import print_host %}
+{% from 'macro_shared_network.j2' import print_shared_network %}
+{% from 'macro_subnet.j2' import print_subnet %}
+# {{ ansible_managed }}
+
+# Global server configuration
+# ===========================
+{%  if isc_dhcpd_authoritative %}
+authoritative;
+{%  endif %}
+log-facility {{ isc_dhcpd_log_facility }};
+default-lease-time {{ isc_dhcpd_default_lease_time }};
+max-lease-time {{ isc_dhcpd_max_lease_time }};
+update-static-leases {{ "on" if isc_dhcpd_update_static_leases else "off" }};
+{%  if isc_dhcpd_template_protocol == 'DHCPv6' %}
+preferred-lifetime {{ isc_dhcpd_preferred_lifetime }};
+dhcpv6-set-tee-times {{ "on" if isc_dhcpd_dhcpv6_set_tee_times else "off" }};
+{%  endif %}
+
+# DHCP options
+# ============
+{%  if isc_dhcpd_template_protocol == 'DHCPv4' %}
+{%      if isc_dhcpd_domain_name %}
+option domain-name "{{ isc_dhcpd_domain_name }}";
+{%      endif %}
+{%      if isc_dhcpd_domain_search %}
+option domain-search "{{ isc_dhcpd_domain_search | join('", "') }}";
+{%      endif %}
+{%      if isc_dhcpd_name_servers|ipv4 %}
+option domain-name-servers {{ isc_dhcpd_name_servers | ipv4 | join(', ') }};
+{%      endif %}
+{%  elif isc_dhcpd_template_protocol == 'DHCPv6' %}
+{%      if isc_dhcpd_domain_search %}
+option dhcp6.domain-search "{{ isc_dhcpd_domain_search | join('", "') }}";
+{%      endif %}
+{%      if isc_dhcpd_name_servers | ipv6 %}
+option dhcp6.name-servers {{ isc_dhcpd_name_servers | ipv6 | join(', ') }};
+{%      endif %}
+{%  endif %}
+{%  if isc_dhcpd_global_options_map[isc_dhcpd_template_protocol] | default() %}
+
+# Custom global configuration options
+# ===================================
+{{ isc_dhcpd_global_options_map[isc_dhcpd_template_protocol] }}
+{%  endif %}
+
+{#
+# Configuration includes
+# ======================
+include "/etc/dhcp/ansible_keys.conf";
+include "/etc/dhcp/ansible_zones.conf";
+{%  if isc_dhcpd__protocol == 'DHCPv4' %}
+include "/etc/dhcp/ansible_failovers.conf";
+{%      if isc_dhcpd__ipxe %}
+include "/etc/dhcp/ansible_ipxe.conf";
+{%      endif %}
+{%  endif %}
+#}
+{%  if (isc_dhcpd_failovers | length > 0) and
+       (isc_dhcpd_template_protocol == 'DHCPv4') %}
+# DHCPv4 Failovers
+# ================
+{%      for _failover in isc_dhcpd_failovers %}
+
+{%          if _failover.comment | default() %}
+# {{ _failover.comment }}
+{%          endif %}
+failover peer "{{ _failover.name }}" {
+{%          if _failover.options | default() %}
+
+    # Custom failover options
+    {{ _failover.options | indent(4) }}
+{%          endif %}
+
+{%          if (_failover.primary | default()) and
+               _failover.primary in (ansible_all_ipv4_addresses | default([])) %}
+    primary;
+    mclt {{ _failover.mclt | default(3600) }};
+    address {{ _failover.primary }};
+    peer address {{ _failover.secondary }};
+{%              if _failover.split | default() %}
+    split {{ _failover.split }};
+{%              else %}
+    hba {{ _failover.hba }};
+{%              endif %}
+{%          else %}
+    secondary;
+    address {{ _failover.secondary }};
+    peer address {{ _failover.primary }};
+{%          endif %}
+    max-response-delay {{ _failover.max_response_delay | default(60) }};
+    max-unacked-updates {{ _failover.max_unacked_updates | default(10) }};
+    load balance max seconds {{ _failover.load_balance_max_seconds | default(5) }};
+    auto-partner-down {{ _failover.auto_partner_down | default(0) }};
+    max-lease-misbalance {{ _failover.max_lease_misbalance | default(15) }};
+    max-lease-ownership {{ _failover.max_lease_ownership | default(10) }};
+    min-balance {{ _failover.min_balance | default(60) }};
+    max-balance {{ _failover.max_balance | default(3600) }};
+}
+{%      endfor %}
+{%  endif %}
+
+# Configuration scopes
+# ====================
+{%  for _host in isc_dhcpd_hosts %}
+{{ print_host(_host, isc_dhcpd_template_protocol) }}
+{%  endfor %}
+{%  for _class in isc_dhcpd_classes %}
+{{ print_class(_class) }}
+{%  endfor %}
+{%  for _subnet in isc_dhcpd_subnets %}
+{{ print_subnet(_subnet, isc_dhcpd_template_protocol) }}
+{%  endfor %}
+{%  for _shared_network in isc_dhcpd_shared_networks %}
+{{ print_shared_network(_shared_network, isc_dhcpd_template_protocol) }}
+{%  endfor %}

@@ -1,0 +1,37 @@
+---
+# Copyright (C) 2021 Reto Gantenbein <reto.gantenbein@linuxmonk.ch>
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+- name: Gather UCI facts
+  check_mode: no
+  ganto.openwrt.uci_facts: {}
+
+- name: Install ISC DHCP packages
+  package:
+    name: '{{ item }}'
+  loop: '{{ (isc_dhcpd_default_packages | union(isc_dhcpd_custom_packages)) | flatten }}'
+
+- name: Configure dhcpd.conf and/or dhcpd6.conf
+  template:
+    src: 'dhcpd.conf.j2'
+    dest: '/etc/{{ item.value }}'
+    mode: '0644'
+  when: item.key in isc_dhcpd_protocols
+  vars:
+    isc_dhcpd_template_protocol: '{{ item.key }}'
+  with_dict:
+    'DHCPv4': 'dhcpd.conf'
+    'DHCPv6': 'dhcpd6.conf'
+  notify:
+    - 'Restart isc-dhcp-server'
+
+- name: Cleanup disabled configuration
+  file:
+    path: '/etc/{{ item.value }}'
+    state: absent
+  when: item.key not in isc_dhcpd_protocols
+  with_dict:
+    'DHCPv4': 'dhcpd.conf'
+    'DHCPv6': 'dhcpd6.conf'
+  notify:
+    - 'Restart isc-dhcp-server'

@@ -13,6 +13,7 @@ So far the following Ansible roles are implemented:
 | --------- | ------------------------------------------- | ---------------- |
 | network   | [defaults](roles/network/defaults/main.yml) | Define network configuration through [UCI network options](https://openwrt.org/docs/guide-user/network/ucicheatsheet) |
 | dnsmasq   | [defaults](roles/dnsmasq/defaults/main.yml) | Manage DHCP and basic DNS through [UCI dhcp](https://openwrt.org/docs/guide-user/base-system/dhcp) options |
+| isc_dhcpd | [defaults](roles/isc_dhcpd/defaults.yml)    | ISC DHCP server configuration (based on DebOps [dhcpd](https://docs.debops.org/en/master/ansible/roles/dhcpd/index.html) Ansible role) |
 | opkg      | [defaults](roles/opkg/defaults/main.yml)    | Feeds configuration, package installation and system updates |
 | system    | [defaults](roles/system/defaults/main.yml)  | Basic system settings through [UCI system options](https://openwrt.org/docs/guide-user/base-system/system_configuration) |
 
