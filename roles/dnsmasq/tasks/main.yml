@@ -8,8 +8,9 @@
 
 - name: Install packages
   package:
-    name: '{{ dnsmasq_packages }}'
+    name: '{{ item }}'
     state: present
+  loop: '{{ dnsmasq_packages }}'
 
 - name: Gather UCI facts
   check_mode: no
