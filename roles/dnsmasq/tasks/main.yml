@@ -11,10 +11,9 @@
     name: '{{ dnsmasq_packages }}'
     state: present
 
-- name: Gather UCI dhcp facts
+- name: Gather UCI facts
   check_mode: no
-  ganto.openwrt.uci_facts:
-    config: dhcp
+  ganto.openwrt.uci_facts: {}
 
 - name: Enable DNS port
   ganto.openwrt.uci:
@@ -44,6 +43,7 @@
 
 - name: Include tasks to configure DHCP pool
   include_tasks: dhcp_pool.yml
+  when: (dnsmasq_include_dhcp_pool.value.interface | default('')) in ansible_facts.uci.network.interface.keys()
   loop: '{{ dnsmasq_dhcp_pool_options | dict2items }}'
   loop_control:
     label: '{{ dnsmasq_include_dhcp_pool.key }}'
