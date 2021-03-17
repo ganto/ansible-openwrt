@@ -63,8 +63,8 @@
     - name: Verify timezone
       assert:
         quiet: true
-        # We set the zonename to Americ/New_York which is Eastern Standard Time (EST)
-        that: ansible_facts.date_time.tz == 'EST'
+        # We set the zonename to Americ/New_York which is Eastern Standard/Daylight Time
+        that: ansible_facts.date_time.tz in ['EST', 'EDT']
 
     - name: Verify NTP peers
       assert:
