@@ -4,7 +4,7 @@
 
 # List of packages that will be installed when running this role.
 dnsmasq_packages: '{{ dnsmasq_default_packages
-                      | combine(dnsmasq_custom_packages) }}'
+                      | union(dnsmasq_custom_packages) }}'
 
 # List of default packages required by this role.
 dnsmasq_default_packages:

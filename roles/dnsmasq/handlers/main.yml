@@ -5,5 +5,6 @@
 - name: Commit UCI dhcp changes
   ganto.openwrt.uci:
     commit: true
+    config: dhcp
   when: dnsmasq_dhcp_uci_commit | bool
   register: dnsmasq_register_uci_dhcp_commit
