@@ -1,0 +1,95 @@
+---
+# Copyright (C) 2021 Reto Gantenbein <reto.gantenbein@linuxmonk.ch>
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+- name: Validate supported operating system
+  assert:
+    fail_msg: 'UCI resolver config is currently only supported on TurrisOS'
+    quiet: true
+    that: ansible_distribution == 'TurrisOS'
+
+- name: Include tasks to check for uncommitted resolver changes
+  include_tasks: check_changes.yml
+  when: resolver_abort_uncommitted|bool
+
+- name: Install packages
+  package:
+    name: '{{ item }}'
+    state: present
+  loop: '{{ resolver_packages }}'
+
+- name: Configure UCI common resolver options
+  ganto.openwrt.uci:
+    command: 'set'
+    config: 'resolver'
+    section: 'common'
+    option: '{{ item.key }}'
+    value: '{{ item.value | ganto.openwrt.uci_type }}'
+  loop: '{{ resolver_common_options | dict2items }}'
+  loop_control:
+    label: '{{ (item.key + ": "
+                + (item.value | ganto.openwrt.uci_type | string))
+               | to_json }}'
+  notify: 'Commit UCI resolver changes'
+
+- name: Configure DNS-over-TLS forwarders
+  ganto.openwrt.uci:
+    command: '{{ "set" if (resolver_forwarder_config | length > 0)
+                       else "delete" }}'
+    config: 'resolver'
+    section: 'common'
+    option: forward_custom
+    value: '{{ resolver_forwarder_config }}'
+  notify: 'Commit UCI resolver changes'
+
+- name: Configure UCI kresd resolver options
+  ganto.openwrt.uci:
+    command: 'set'
+    config: 'resolver'
+    section: 'kresd'
+    option: '{{ item.key }}'
+    value: '{{ item.value | ganto.openwrt.uci_type }}'
+  loop: '{{ resolver_kresd_options | dict2items }}'
+  loop_control:
+    label: '{{ (item.key + ": "
+                + (item.value | ganto.openwrt.uci_type | string))
+               | to_json }}'
+  notify: 'Commit UCI resolver changes'
+
+- name: Define custom kresd configuration
+  copy:
+    dest: '/etc/kresd/custom.conf'
+    content: '{{ resolver_kresd_custom_config }}'
+    mode: '0644'
+  when: resolver_kresd_custom_config | length > 0
+  register: resolver_register_kresd_custom_config
+
+- name: Delete custom kresd configuration
+  file:
+    path: '/etc/kresd/custom.conf'
+    state: absent
+  when: resolver_kresd_custom_config | length == 0
+  register: resolver_register_kresd_custom_delete
+
+- name: Manage custom config to kresd option
+  ganto.openwrt.uci:
+    command: '{{ "set" if (resolver_kresd_custom_config | length > 0)
+                       else "delete" }}'
+    config: 'resolver'
+    section: 'kresd'
+    option: 'include_config'
+    value: '/etc/kresd/custom.conf'
+  notify: 'Commit UCI resolver changes'
+
+- name: Trigger handlers
+  meta: flush_handlers
+
+- name: Restart resolver service
+  service:
+    name: 'resolver'
+    state: restarted
+  when:
+    - resolver_restart | bool
+    - ((resolver_register_uci_commit | default({})) is changed) or
+      (resolver_register_kresd_custom_config is changed) or
+      (resolver_register_kresd_custom_delete is changed)
