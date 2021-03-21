@@ -7,15 +7,24 @@
   collections:
     - ganto.openwrt
 
-  roles:
-    - name: opkg
+  tasks:
+    - import_role:  # noqa unnamed-task
+        name: opkg
       tags: openwrt.opkg
 
-    - name: network
+    - import_role:  # noqa unnamed-task
+        name: network
       tags: openwrt.network
 
-    - name: dnsmasq
+    - import_role:  # noqa unnamed-task
+        name: dnsmasq
       tags: openwrt.dnsmasq
 
-    - name: system
+    - import_role:  # noqa unnamed-task
+        name: system
       tags: openwrt.system
+
+    - import_role:  # noqa unnamed-task
+        name: resolver
+      when: ansible_distribution == 'TurrisOS'
+      tags: openwrt.resolver

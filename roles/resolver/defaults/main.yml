@@ -1,0 +1,145 @@
+---
+# Copyright (C) 2021 Reto Gantenbein <reto.gantenbein@linuxmonk.ch>
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+# List of packages that will be installed when running this role.
+resolver_packages: '{{ resolver_default_packages
+                      | union(resolver_custom_packages) | flatten }}'
+
+# List of default packages required by this role.
+resolver_default_packages:
+  - 'resolver-conf'
+  - '{{ "knot-resolver" if resolver_name == "kresd" else [] }}'
+  - '{{ "unbound" if resolver_name == "unbound" else [] }}'
+
+# List of user defined packages required by this role.
+resolver_custom_packages: []
+
+#
+# Resolver configuration
+#
+
+# Name of resolver service to be enabled. One of 'kresd' (Knot Resolver) or
+# 'unbound'.
+resolver_name: 'kresd'
+
+# YAML dictionary of options defined in the 'resolver.common' UCI section (valid
+# for kresd and unbound.
+resolver_common_options: '{{ resolver_common_default_options
+                             | combine(resolver_common_custom_options) }}'
+
+# YAML dictionary of default options defined in the 'resolver.common' UCI section
+# (valid for kresd and unbound) as set by TurrisOS.
+resolver_common_default_options:
+
+  # Add hostnames from DHCP leases to resolver
+  dynamic_domains: false
+
+  # Buffer size in bytes for EDNS queries. This must be smaller than the network
+  # MTU. Also see https://dnsflagday.net/2020/#message-size-considerations
+  edns_buffer_size: 1232
+
+  # Forward DNS queries to an upstream resolver instead for resolving them
+  # recusively. If this is enabled the resolver will mainly act as a DNS cache
+  # with DNSSEC validation. This must be enabled if DNS-over-TLS should be used.
+  forward_upstream: true
+
+  # Ignore DNSSEC trust anchors. This disables DNSSEC validation when set to
+  # `true`.
+  ignore_root_key: false
+
+  # List of listen addresses
+  interface:
+    - '0.0.0.0'
+    - '::0'
+
+  # File path where DNSSEC trust anchors DS or DNSKEY records are stored
+  keyfile: '/etc/root.keys'
+
+  # Buffer size in bytes for DNS messages
+  msg_buffer_size: 65552
+
+  # Size of message cache
+  msg_cache_size: '20M'
+
+  # Enable IPv4 for contacting upstream DNS servers
+  net_ipv4: true
+
+  # Enable IPv6 for contacting upstream DNS servers
+  net_ipv6: true
+
+  # Resolver listen port. If set to 853 a DNS-over-TLS socket will be bound.
+  port: 53
+
+  # Prefetch DNS records that are about to expire
+  prefetch: 'yes'
+
+  # Resolver to be used on the system (one of 'kresd' or 'unbound')
+  prefered_resolver: '{{ resolver_name }}'
+
+  # Add DNS entries for entries found in /etc/hosts
+  static_domains: true
+
+  # Enable verbose logging
+  verbose: false
+
+# YAML dictionary of user defined options defined in the 'resolver.common' UCI
+# section.
+resolver_common_custom_options: {}
+
+# Name of configuration of TLS upstream servers if 'forward_upstream' is enabled
+# and DNS-over-TLS should be used. The configuration must exist in
+# '/etc/resolver/dns_servers'. If this value is empty, DNS-over-TLS forwarders
+# are not configured.
+#
+# By default the 'resolver-conf' package ships the following configurations:
+#   00_odvr-cznic
+#   99_cloudflare
+#   99_google
+#   99_quad9_filtered
+#   99_quad9_unfiltered
+#
+resolver_forwarder_config: ''
+
+# YAML dictionary of options defined in the 'resolver.kresd' UCI section.
+resolver_kresd_options: '{{ resolver_kresd_default_options
+                            | combine(resolver_kresd_custom_options) }}'
+
+# YAML dictionary of default options defined in the 'resolver.kresd' UCI section
+# as set by TurrisOS.
+resolver_kresd_default_options:
+  
+  # Do not clean DNS cache on service restart
+  keep_cache: true
+
+# YAML dictionary of user defined options defined in the 'resolver.kresd' UCI
+# section.
+resolver_kresd_custom_options: {}
+
+# Raw string of a Knot resolver custom configuration snippet that is written to
+# the /etc/kresd/resolver.conf file. Here you can specify any configuration
+# statements that cannot be generated via UCI configuration keys.
+#
+# Check the upstream documentation for more information:
+#   https://knot-resolver.readthedocs.io/en/stable/config-overview.html
+#
+# Example:
+#
+#   resolver_kresd_custom_config: |
+#     --- See https://knot-resolver.readthedocs.io/en/stable/modules-policy.html#replacing-part-of-the-dns-tree
+#     policy.add(policy.suffix(policy.STUB('192.168.1.1'), {todname('example.local.')}))
+#
+resolver_kresd_custom_config: ''
+
+#
+# Generic role behavior
+#
+
+# Abort if there are uncommitted UCI 'dhcp' changes before running this role.
+resolver_abort_uncommitted: true
+
+# Commit UCI resolver changes to persistency.
+resolver_uci_commit: true
+
+# Restart resolver service after changes.
+resolver_restart: true
