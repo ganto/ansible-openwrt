@@ -8,23 +8,23 @@
     - ganto.openwrt
 
   tasks:
-    - import_role:
+    - import_role:  # noqa unnamed-task
         name: opkg
       tags: openwrt.opkg
 
-    - import_role:
+    - import_role:  # noqa unnamed-task
         name: network
       tags: openwrt.network
 
-    - import_role:
+    - import_role:  # noqa unnamed-task
         name: dnsmasq
       tags: openwrt.dnsmasq
 
-    - import_role:
+    - import_role:  # noqa unnamed-task
         name: system
       tags: openwrt.system
 
-    - import_role:
+    - import_role:  # noqa unnamed-task
         name: resolver
       when: ansible_distribution == 'TurrisOS'
       tags: openwrt.resolver
