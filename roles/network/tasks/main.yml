@@ -71,12 +71,12 @@
     - network_restart | bool
     - (network_register_uci_commit | default({})) is changed
   register: network_register_restart
+  async: 35
+  # continue with next task
+  poll: 0
 
 - name: Wait for network to come up again
-  delegate_to: '{{ network_check_delegate_to }}'
-  wait_for:
-    host: '{{ ansible_host }}'
-    port: '{{ ansible_port | default(22) }}'
-    search_regex: 'SSH-2.0'
+  wait_for_connection:
+    delay: 2
     timeout: 30
   when: network_register_restart is changed  # noqa no-handler

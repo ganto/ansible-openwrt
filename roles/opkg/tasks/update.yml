@@ -48,7 +48,20 @@
   register: opkg_register_pkgupdate
 
 - name: Reboot host
-  reboot:
+  # Cannot use 'reboot' module because busybox doesn't know `shutdown -r`
+  # Allow Ansible to properly close the connection before reboot
+  shell: sleep 5 && reboot
+  async: 1
+  poll: 0
   when:
     - opkg_update_reboot_packages | intersect(opkg_fact_upgradable) | length > 0
     - opkg_update_reboot | bool
+  register: opkg_register_reboot
+
+- name: Wait for reboot to complete
+  wait_for_connection:
+    connect_timeout: 10
+    sleep: 2
+    delay: 5
+    timeout: 300
+  when: opkg_register_reboot is changed  # noqa no-handler

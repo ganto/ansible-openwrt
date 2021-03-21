@@ -136,8 +136,3 @@ network_uci_commit: true
 
 # Restart network service after changes.
 network_restart: true
-
-# Host name (or inventory name) of host to which the task for the SSH check
-# after network restart is delegated to. Set this to a jump host if the target
-# host is not directly reachable from the Ansible controller.
-network_check_delegate_to: localhost
