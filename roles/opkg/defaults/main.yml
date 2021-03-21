@@ -175,8 +175,3 @@ opkg_update_reboot: true
 # if `opkg_update_packages` or `opkg_update_reboot` is set to `false`.
 opkg_update_reboot_packages:
   - kernel
-
-# Host name (or inventory name) of host to which the task for the SSH check
-# after reboot is delegated to. Set this to a jump host if the target host is
-# not directly reachable from the Ansible controller.
-opkg_reboot_check_delegate_to: localhost
